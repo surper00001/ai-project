@@ -197,3 +197,4 @@ export const EnhancedCard = forwardRef<HTMLDivElement, EnhancedCardProps>(
 );
 
 EnhancedCard.displayName = 'EnhancedCard';
+

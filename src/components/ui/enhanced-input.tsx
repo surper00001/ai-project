@@ -1,7 +1,6 @@
 'use client';
 
 import React, { forwardRef, useState } from 'react';
-import { Input } from './input';
 import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
 import { Eye, EyeOff, Search, X } from 'lucide-react';
@@ -153,12 +152,12 @@ export const EnhancedInput = forwardRef<HTMLInputElement, EnhancedInputProps>(
           />
 
           {/* 输入框 */}
-          <Input
+          <input
             ref={ref}
             type={showPassword && !showText ? 'password' : type}
             value={value}
             className={cn(
-              'relative z-10 border-0 bg-transparent focus:ring-0 focus:ring-offset-0 placeholder:opacity-60',
+              'relative z-10 border-0 bg-transparent focus:ring-0 focus:ring-offset-0 placeholder:opacity-60 w-full outline-none',
               sizeClasses[size],
               className
             )}
@@ -278,3 +277,4 @@ export const EnhancedInput = forwardRef<HTMLInputElement, EnhancedInputProps>(
 );
 
 EnhancedInput.displayName = 'EnhancedInput';
+

@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { EnhancedInput as Input } from '@/components/ui/enhanced-input';
 import { MessageBubble } from './MessageBubble';
 import { Sidebar } from './Sidebar';
 import { LoadingSpinner } from './LoadingSpinner';
@@ -758,7 +758,7 @@ export function ChatInterface() {
                   <Input
                     ref={inputRef}
                     value={inputMessage}
-                    onChange={(e) => setInputMessage(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInputMessage(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder="输入你的消息..."
                     disabled={isLoading}

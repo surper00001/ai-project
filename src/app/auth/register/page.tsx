@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { EnhancedInput as Input } from "@/components/ui/enhanced-input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function Register() {
@@ -170,3 +170,4 @@ export default function Register() {
     </div>
   );
 }
+
