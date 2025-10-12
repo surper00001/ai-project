@@ -52,7 +52,8 @@ export async function callQwenAPI(messages: QwenMessage[]): Promise<string> {
 
 export async function callQwenStreamAPI(
   messages: QwenMessage[], 
-  onChunk: (chunk: string) => Promise<void>
+  onChunk: (chunk: string) => Promise<void>,
+  isInterrupted?: () => boolean
 ): Promise<void> {
   try {
     // 先获取完整的回复
@@ -61,7 +62,13 @@ export async function callQwenStreamAPI(
     // 模拟流式输出，按词或字符发送
     const words = fullResponse.split('');
     for (let i = 0; i < words.length; i++) {
+      // 检查是否被中断
+      if (isInterrupted && isInterrupted()) {
+        throw new Error('Interrupted by user');
+      }
+      
       await onChunk(words[i]);
+      
       // 根据字符类型调整延迟
       const char = words[i];
       let delay = 50; // 默认延迟
@@ -78,9 +85,31 @@ export async function callQwenStreamAPI(
         delay = 60; // 中文字符正常速度
       }
       
-      await new Promise(resolve => setTimeout(resolve, delay));
+      // 使用可中断的延迟
+      await new Promise((resolve, reject) => {
+        const timeoutId = setTimeout(resolve, delay);
+        
+        // 如果提供了中断检查函数，定期检查
+        if (isInterrupted) {
+          const checkInterval = setInterval(() => {
+            if (isInterrupted()) {
+              clearTimeout(timeoutId);
+              clearInterval(checkInterval);
+              reject(new Error('Interrupted by user'));
+            }
+          }, 10); // 每10ms检查一次
+          
+          // 清理定时器
+          setTimeout(() => {
+            clearInterval(checkInterval);
+          }, delay);
+        }
+      });
     }
   } catch (error) {
+    if (error instanceof Error && error.message === 'Interrupted by user') {
+      throw error; // 重新抛出中断错误
+    }
     console.error('Qwen Stream API Error:', error);
     throw new Error('Failed to get stream response from AI');
   }

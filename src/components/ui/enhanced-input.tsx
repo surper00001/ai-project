@@ -157,13 +157,15 @@ export const EnhancedInput = forwardRef<HTMLInputElement, EnhancedInputProps>(
             type={showPassword && !showText ? 'password' : type}
             value={value}
             className={cn(
-              'relative z-10 border-0 bg-transparent focus:ring-0 focus:ring-offset-0 placeholder:opacity-60 w-full outline-none',
+              'relative border-0 bg-transparent focus:ring-0 focus:ring-offset-0 placeholder:opacity-60 w-full outline-none',
               sizeClasses[size],
               className
             )}
             style={{
               ...getVariantStyles(),
-              ...getStateStyles()
+              ...getStateStyles(),
+              zIndex: 100,
+              position: 'relative'
             }}
             onFocus={(e) => {
               setIsFocused(true);
@@ -179,15 +181,15 @@ export const EnhancedInput = forwardRef<HTMLInputElement, EnhancedInputProps>(
           {/* 左侧图标 */}
           {icon && iconPosition === 'left' && (
             <div 
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 z-20"
-              style={{ color: themeConfig.colors.text, opacity: 0.6 }}
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none"
+              style={{ color: themeConfig.colors.text, opacity: 0.6, zIndex: 90 }}
             >
               {icon}
             </div>
           )}
 
           {/* 右侧图标区域 */}
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 z-20 flex items-center space-x-2">
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-2" style={{ zIndex: 90 }}>
             {/* 清除按钮 */}
             {clearable && value && (
               <button
@@ -224,7 +226,8 @@ export const EnhancedInput = forwardRef<HTMLInputElement, EnhancedInputProps>(
               className="absolute inset-0 rounded-xl pointer-events-none"
               style={{ 
                 boxShadow: `0 0 0 2px ${themeConfig.colors.primary}30`,
-                animation: 'pulse 2s infinite'
+                animation: 'pulse 2s infinite',
+                zIndex: 80
               }}
             />
           )}
@@ -232,10 +235,11 @@ export const EnhancedInput = forwardRef<HTMLInputElement, EnhancedInputProps>(
           {/* 状态指示器 */}
           {(error || success) && (
             <div 
-              className="absolute -bottom-1 left-0 right-0 h-0.5 rounded-full"
+              className="absolute -bottom-1 left-0 right-0 h-0.5 rounded-full pointer-events-none"
               style={{ 
                 background: error ? themeConfig.colors.primary : themeConfig.colors.accent,
-                animation: 'pulse 1s infinite'
+                animation: 'pulse 1s infinite',
+                zIndex: 80
               }}
             />
           )}
@@ -246,7 +250,8 @@ export const EnhancedInput = forwardRef<HTMLInputElement, EnhancedInputProps>(
               className="absolute inset-0 rounded-xl pointer-events-none"
               style={{ 
                 background: `linear-gradient(45deg, transparent, ${themeConfig.colors.primary}10, transparent)`,
-                animation: 'neon-flicker 1.5s infinite alternate'
+                animation: 'neon-flicker 1.5s infinite alternate',
+                zIndex: 70
               }}
             />
           )}
@@ -256,7 +261,8 @@ export const EnhancedInput = forwardRef<HTMLInputElement, EnhancedInputProps>(
               className="absolute inset-0 rounded-xl pointer-events-none"
               style={{ 
                 background: `linear-gradient(90deg, transparent, ${themeConfig.colors.primary}20, transparent)`,
-                animation: 'cyber-scan 2s linear infinite'
+                animation: 'cyber-scan 2s linear infinite',
+                zIndex: 70
               }}
             />
           )}

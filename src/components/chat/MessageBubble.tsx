@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { Bot, User, Copy, Check, ThumbsUp, ThumbsDown, MoreVertical, RotateCcw } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
+import { CodeBlock } from './CodeBlock';
 
 interface Message {
   id: string;
@@ -79,14 +80,19 @@ export function MessageBubble({ message, isUser, index = 0 }: MessageBubbleProps
     }
   }, [index, isUser]);
 
-  // 内容更新动画
+  // 内容更新动画 - 优化流式输入体验
   useEffect(() => {
     if (contentRef.current && message.content !== displayedContent) {
-      // 内容变化时的动画
-      gsap.fromTo(contentRef.current,
-        { scale: 0.98, opacity: 0.8 },
-        { scale: 1, opacity: 1, duration: 0.2, ease: "power2.out" }
-      );
+      // 只在内容长度变化较大时才执行动画，避免流式输入时的频繁动画
+      const contentLengthDiff = Math.abs(message.content.length - displayedContent.length);
+      
+      if (contentLengthDiff > 10 || displayedContent === '') {
+        // 内容变化时的动画
+        gsap.fromTo(contentRef.current,
+          { scale: 0.98, opacity: 0.8 },
+          { scale: 1, opacity: 1, duration: 0.2, ease: "power2.out" }
+        );
+      }
       setDisplayedContent(message.content);
     }
   }, [message.content, displayedContent]);
@@ -182,8 +188,63 @@ export function MessageBubble({ message, isUser, index = 0 }: MessageBubbleProps
     // 这里可以添加重新生成的逻辑
   };
 
-  // 格式化消息内容
-  const formatContent = (content: string) => {
+  // 解析消息内容，分离代码块和普通文本
+  const parseContent = (content: string) => {
+    const parts: Array<{ type: 'text' | 'code'; content: string; language?: string; filename?: string }> = [];
+    
+    // 匹配代码块：```language\ncode\n```
+    const codeBlockRegex = /```(\w+)?\n?([\s\S]*?)```/g;
+    let lastIndex = 0;
+    let match;
+    
+    while ((match = codeBlockRegex.exec(content)) !== null) {
+      // 添加代码块前的文本
+      if (match.index > lastIndex) {
+        const textContent = content.slice(lastIndex, match.index);
+        if (textContent.trim()) {
+          parts.push({
+            type: 'text',
+            content: formatTextContent(textContent)
+          });
+        }
+      }
+      
+      // 添加代码块
+      const language = match[1] || 'text';
+      const code = match[2].trim();
+      parts.push({
+        type: 'code',
+        content: code,
+        language: language
+      });
+      
+      lastIndex = match.index + match[0].length;
+    }
+    
+    // 添加最后剩余的文本
+    if (lastIndex < content.length) {
+      const textContent = content.slice(lastIndex);
+      if (textContent.trim()) {
+        parts.push({
+          type: 'text',
+          content: formatTextContent(textContent)
+        });
+      }
+    }
+    
+    // 如果没有代码块，返回整个内容作为文本
+    if (parts.length === 0) {
+      parts.push({
+        type: 'text',
+        content: formatTextContent(content)
+      });
+    }
+    
+    return parts;
+  };
+
+  // 格式化普通文本内容
+  const formatTextContent = (content: string) => {
     return content
       .replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight: 600;">$1</strong>')
       .replace(/\*(.*?)\*/g, '<em style="font-style: italic;">$1</em>')
@@ -273,10 +334,24 @@ export function MessageBubble({ message, isUser, index = 0 }: MessageBubbleProps
           {/* 消息内容 */}
           <div 
             ref={contentRef}
-            className="prose prose-invert max-w-none text-base leading-relaxed relative z-10"
-            style={{ color: themeConfig.colors.text }}
+            className="prose prose-invert max-w-none text-base leading-relaxed relative z-10 streaming-text"
+            style={{ 
+              color: themeConfig.colors.text
+            }}
           >
-            <div dangerouslySetInnerHTML={{ __html: formatContent(displayedContent) }} />
+            {parseContent(displayedContent).map((part, index) => (
+              <div key={index} className="mb-4 last:mb-0">
+                {part.type === 'text' ? (
+                  <div dangerouslySetInnerHTML={{ __html: part.content }} />
+                ) : (
+                  <CodeBlock 
+                    code={part.content} 
+                    language={part.language}
+                    filename={part.filename}
+                  />
+                )}
+              </div>
+            ))}
             {isTyping && (
               <span 
                 className="inline-block w-2 h-5 ml-1 animate-pulse"

@@ -167,6 +167,21 @@ body {
 
 .message-bubble {
   animation: messageSlideIn 0.6s ease-out;
+  /* 优化流式渲染性能 */
+  contain: layout style paint;
+  will-change: auto;
+}
+
+/* 流式文本优化 */
+.streaming-text {
+  /* 启用硬件加速 */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  /* 优化文本渲染 */
+  text-rendering: optimizeSpeed;
+  font-smooth: always;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* 渐变文字效果 */
@@ -732,4 +747,101 @@ body {
 
 .will-change-auto {
   will-change: auto;
+}
+
+/* 代码块特殊效果 */
+@keyframes code-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px var(--theme-primary);
+  }
+  50% {
+    box-shadow: 0 0 20px var(--theme-primary), 0 0 30px var(--theme-primary);
+  }
+}
+
+.code-glow {
+  animation: code-glow 2s ease-in-out infinite alternate;
+}
+
+/* 代码块扫描线效果 */
+@keyframes code-scan {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.code-scan::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--theme-primary), transparent);
+  animation: code-scan 3s linear infinite;
+}
+
+/* 代码块打字机效果 */
+@keyframes typewriter-code {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.typewriter-code {
+  overflow: hidden;
+  white-space: nowrap;
+  animation: typewriter-code 2s steps(40, end);
+}
+
+/* 代码块行号样式 */
+.code-line-numbers {
+  counter-reset: line-number;
+}
+
+.code-line-numbers .code-line::before {
+  counter-increment: line-number;
+  content: counter(line-number);
+  display: inline-block;
+  width: 2em;
+  text-align: right;
+  margin-right: 1em;
+  color: var(--theme-text);
+  opacity: 0.5;
+  user-select: none;
+}
+
+/* 代码块选择效果 */
+.code-block-selected {
+  background: var(--theme-primary)20 !important;
+  border-color: var(--theme-primary) !important;
+  box-shadow: 0 0 20px var(--theme-primary)30 !important;
+}
+
+/* 代码块复制成功动画 */
+@keyframes copy-success {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.copy-success {
+  animation: copy-success 0.3s ease-in-out;
 }

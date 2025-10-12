@@ -1,0 +1,45 @@
+{
+  "name": "AI聊天助手",
+  "version": "1.0.0",
+  "description": "一个功能丰富的AI聊天应用",
+  "features": [
+    "智能对话",
+    "代码块支持",
+    "文件上传分析",
+    "多主题切换",
+    "流式输出"
+  ],
+  "supportedLanguages": {
+    "javascript": "JavaScript",
+    "typescript": "TypeScript",
+    "python": "Python",
+    "java": "Java",
+    "css": "CSS",
+    "html": "HTML",
+    "json": "JSON",
+    "xml": "XML",
+    "yaml": "YAML",
+    "markdown": "Markdown"
+  },
+  "config": {
+    "maxFileSize": "5MB",
+    "supportedFormats": [
+      ".txt", ".md", ".js", ".ts", ".py", 
+      ".java", ".c", ".cpp", ".cs", ".xml", 
+      ".yaml", ".yml", ".json", ".csv"
+    ],
+    "themes": [
+      "light", "dark", "cyberpunk", "neon", "aurora"
+    ]
+  },
+  "api": {
+    "endpoint": "https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation",
+    "model": "qwen-turbo",
+    "features": [
+      "text-generation",
+      "file-analysis",
+      "code-review",
+      "documentation"
+    ]
+  }
+}

@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { callQwenStreamAPI } from "@/lib/qwen-api";
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
 
     // 准备发送给千问的消息历史
     const messages = chatSession.messages.map(msg => ({
-      role: msg.role === 'USER' ? 'user' : 'assistant',
+      role: (msg.role === 'USER' ? 'user' : 'assistant') as 'user' | 'assistant',
       content: msg.content
     }));
 
@@ -69,6 +69,13 @@ export async function POST(request: NextRequest) {
     const stream = new ReadableStream({
       async start(controller) {
         const encoder = new TextEncoder();
+        let isInterrupted = false;
+        
+        // 监听请求中断信号
+        request.signal?.addEventListener('abort', () => {
+          isInterrupted = true;
+          console.log('Request interrupted by client');
+        });
         
         // 发送用户消息
         controller.enqueue(encoder.encode(`data: ${JSON.stringify({
@@ -92,9 +99,14 @@ export async function POST(request: NextRequest) {
         })}\n\n`));
 
         try {
-          // 调用千问流式API
+          // 调用千问流式API，传递中断检查函数
           let currentContent = '';
           await callQwenStreamAPI(messages, async (chunk: string) => {
+            // 检查是否被中断
+            if (isInterrupted) {
+              throw new Error('Interrupted by user');
+            }
+            
             currentContent += chunk;
             
             // 发送流式数据
@@ -111,7 +123,7 @@ export async function POST(request: NextRequest) {
                 data: { content: currentContent }
               });
             }
-          });
+          }, () => isInterrupted);
 
           // 最终更新数据库
           await prisma.message.update({
@@ -132,11 +144,20 @@ export async function POST(request: NextRequest) {
           });
 
         } catch (error) {
-          console.error("Stream error:", error);
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({
-            type: 'error',
-            error: 'Failed to get response from AI'
-          })}\n\n`));
+          if (isInterrupted) {
+            console.log("Stream interrupted by user");
+            // 发送中断信号
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+              type: 'interrupted',
+              messageId: assistantMessage.id
+            })}\n\n`));
+          } else {
+            console.error("Stream error:", error);
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({
+              type: 'error',
+              error: 'Failed to get response from AI'
+            })}\n\n`));
+          }
         } finally {
           controller.close();
         }
