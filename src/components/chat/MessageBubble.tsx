@@ -255,15 +255,15 @@ export function MessageBubble({ message, isUser, index = 0 }: MessageBubbleProps
   return (
     <div
       ref={bubbleRef}
-      className={`flex ${isUser ? 'justify-end' : 'justify-start'} message-bubble mb-6`}
+      className={`flex ${isUser ? 'justify-end' : 'justify-start'} message-bubble mb-6 relative z-10 message-bubble-container`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className={`flex items-start space-x-4 max-w-[80%] ${isUser ? 'flex-row-reverse space-x-reverse' : ''}`}>
+      <div className={`flex items-start space-x-4 max-w-[80%] ${isUser ? 'flex-row-reverse space-x-reverse' : ''} relative`}>
         {/* 增强的头像 */}
         <div 
           ref={avatarRef}
-          className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center shadow-lg relative overflow-hidden ${
+          className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center shadow-lg relative overflow-hidden message-bubble-avatar ${
             isUser ? 'bg-gradient-to-r from-purple-500 to-blue-500' : 'bg-gradient-to-r from-emerald-500 to-teal-500'
           }`}
           style={{ 
@@ -306,7 +306,7 @@ export function MessageBubble({ message, isUser, index = 0 }: MessageBubbleProps
 
         {/* 增强的消息气泡 */}
         <div 
-          className={`relative group rounded-2xl p-5 shadow-2xl transition-all duration-300 max-w-full ${
+          className={`relative group rounded-2xl p-5 shadow-2xl transition-all duration-300 max-w-full message-bubble-content ${
             isUser 
               ? 'text-white' 
               : 'backdrop-blur-xl border text-gray-100'
@@ -318,7 +318,9 @@ export function MessageBubble({ message, isUser, index = 0 }: MessageBubbleProps
             borderColor: isUser 
               ? 'transparent' 
               : `${themeConfig.colors.primary}30`,
-            transition: 'all 0.3s ease'
+            transition: 'all 0.3s ease',
+            zIndex: 20,
+            position: 'relative'
           }}
         >
           {/* 气泡背景装饰 */}
@@ -363,9 +365,9 @@ export function MessageBubble({ message, isUser, index = 0 }: MessageBubbleProps
           </div>
           
           {/* 操作按钮组 */}
-          <div className={`absolute top-3 right-3 flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-all duration-300 ${
+          <div className={`absolute top-3 right-3 flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-all duration-300 message-actions ${
             showActions ? 'opacity-100' : ''
-          }`}>
+          }`} style={{ zIndex: 30 }}>
             {/* 复制按钮 */}
             <button
               onClick={copyToClipboard}
@@ -487,7 +489,8 @@ export function MessageBubble({ message, isUser, index = 0 }: MessageBubbleProps
                 : `${themeConfig.colors.surface}30`,
               borderColor: isUser 
                 ? 'transparent' 
-                : `${themeConfig.colors.primary}30`
+                : `${themeConfig.colors.primary}30`,
+              zIndex: 15
             }}
           />
         </div>

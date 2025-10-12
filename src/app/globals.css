@@ -170,6 +170,10 @@ body {
   /* 优化流式渲染性能 */
   contain: layout style paint;
   will-change: auto;
+  /* 防止重叠 */
+  position: relative;
+  z-index: 10;
+  margin-bottom: 1.5rem;
 }
 
 /* 流式文本优化 */
@@ -844,4 +848,132 @@ body {
 
 .copy-success {
   animation: copy-success 0.3s ease-in-out;
+}
+
+/* 防止元素重叠的通用样式 */
+.chat-container {
+  position: relative;
+  z-index: 1;
+}
+
+.chat-messages {
+  position: relative;
+  z-index: 10;
+  padding-bottom: 2rem;
+}
+
+.chat-input-area {
+  position: relative;
+  z-index: 50;
+  background: inherit;
+}
+
+.chat-sidebar {
+  position: relative;
+  z-index: 50;
+}
+
+.chat-top-bar {
+  position: relative;
+  z-index: 30;
+}
+
+/* 确保消息气泡不会重叠 */
+.message-bubble-container {
+  position: relative;
+  z-index: 10;
+  margin-bottom: 1.5rem;
+  clear: both;
+  /* 确保气泡之间有足够的间距 */
+  min-height: 60px;
+}
+
+/* 消息气泡内容区域 */
+.message-bubble-content {
+  position: relative;
+  z-index: 20;
+  /* 防止内容溢出 */
+  overflow: hidden;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+/* 消息气泡头像区域 */
+.message-bubble-avatar {
+  position: relative;
+  z-index: 15;
+  flex-shrink: 0;
+}
+
+/* 操作按钮层级 */
+.message-actions {
+  position: relative;
+  z-index: 30;
+}
+
+/* 输入框层级 */
+.input-container {
+  position: relative;
+  z-index: 60;
+}
+
+/* 文件上传区域层级 */
+.file-upload-area {
+  position: relative;
+  z-index: 55;
+}
+
+/* 响应式布局优化 */
+@media (max-width: 768px) {
+  .message-bubble {
+    margin-bottom: 1rem;
+  }
+  
+  .chat-messages {
+    padding-bottom: 1.5rem;
+  }
+  
+  .message-bubble-container {
+    margin-bottom: 1rem;
+  }
+  
+  .chat-input-area {
+    padding: 1rem 0;
+  }
+  
+  .chat-top-bar {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .message-bubble-container {
+    margin-bottom: 0.75rem;
+  }
+  
+  .chat-messages {
+    padding: 1rem;
+    padding-bottom: 1rem;
+  }
+  
+  .chat-input-area {
+    padding: 0.75rem 0;
+  }
+  
+  .message-actions {
+    opacity: 1 !important;
+  }
+}
+
+/* 确保全屏模式下的层级 */
+.fullscreen-mode {
+  z-index: 9999;
+}
+
+.fullscreen-mode .chat-container {
+  z-index: 10000;
+}
+
+.fullscreen-mode .chat-input-area {
+  z-index: 10050;
 }

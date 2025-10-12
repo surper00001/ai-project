@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:15-alpine
+    container_name: ai-project-db-prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ai_project
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ai-project-network
+    # 生产环境不暴露端口到主机
+    # ports:
+    #   - "5432:5432"
+
+  # Next.js 应用
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai-project-app-prod
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - NEXTAUTH_URL=${NEXTAUTH_URL}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - NEXTAUTH_URL_INTERNAL=http://app:3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    networks:
+      - ai-project-network
+    volumes:
+      - ./uploads:/app/uploads  # 如果需要文件上传功能
+    # 资源限制
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+
+  # Redis (可选，用于会话存储)
+  redis:
+    image: redis:7-alpine
+    container_name: ai-project-redis-prod
+    restart: unless-stopped
+    networks:
+      - ai-project-network
+    volumes:
+      - redis_data:/data
+    # 生产环境不暴露端口到主机
+    # ports:
+    #   - "6379:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  ai-project-network:
+    driver: bridge

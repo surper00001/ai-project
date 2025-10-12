@@ -823,14 +823,16 @@ ${file.content}
       />
 
       {/* 主聊天区域 */}
-      <div className="flex-1 flex flex-col max-w-5xl mx-auto w-full relative z-10 min-h-0">
+      <div className="flex-1 flex flex-col max-w-5xl mx-auto w-full relative z-10 min-h-0 chat-container">
         {/* 增强的顶部栏 */}
         <div 
-          className="backdrop-blur-xl border-b p-6 shadow-2xl relative overflow-hidden"
+          className="backdrop-blur-xl border-b p-6 shadow-2xl relative overflow-hidden chat-top-bar"
           style={{ 
             background: `${themeConfig.colors.surface}20`,
             borderColor: `${themeConfig.colors.primary}30`,
-            transition: 'all 0.5s ease'
+            transition: 'all 0.5s ease',
+            zIndex: 30,
+            position: 'relative'
           }}
         >
           {/* 顶部栏背景装饰 */}
@@ -962,12 +964,14 @@ ${file.content}
         {/* 增强的消息区域 */}
         <div 
           ref={chatContainerRef}
-          className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 relative"
+          className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 relative chat-messages"
           style={{ 
             background: `linear-gradient(to bottom, transparent, ${themeConfig.colors.surface}10)`,
             transition: 'all 0.5s ease',
             minHeight: 0, // 确保flex子元素可以收缩
-            paddingBottom: '2rem' // 为输入区域留出空间
+            paddingBottom: '2rem', // 为输入区域留出空间
+            zIndex: 10,
+            position: 'relative'
           }}
         >
           {currentSession ? (
@@ -1122,13 +1126,15 @@ ${file.content}
         {/* 增强的输入区域 */}
         {currentSession && (
           <div 
-            className="backdrop-blur-xl border-t shadow-2xl relative overflow-hidden"
+            className="backdrop-blur-xl border-t shadow-2xl relative overflow-hidden chat-input-area"
             style={{ 
               background: `${themeConfig.colors.surface}20`,
               borderColor: `${themeConfig.colors.primary}30`,
               transition: 'all 0.5s ease',
               padding: '1.5rem 0',
-              marginTop: 'auto'
+              marginTop: 'auto',
+              zIndex: 50,
+              position: 'relative'
             }}
           >
             {/* 输入区域背景装饰 */}
@@ -1140,7 +1146,7 @@ ${file.content}
             <div className="max-w-5xl mx-auto relative z-10 px-4 sm:px-6">
               <div className="flex flex-col space-y-3">
                 {/* 文件上传区域 */}
-                <div className="flex flex-col space-y-2">
+                <div className="flex flex-col space-y-2 file-upload-area">
                   <div className="flex items-center space-x-2">
                     <FileUploadButton 
                       onFileSelect={handleFileSelect} 
@@ -1211,7 +1217,7 @@ ${file.content}
                 {/* 输入框和按钮区域 */}
                 <div className="flex items-end space-x-2 sm:space-x-3">
                   {/* 输入框容器 */}
-                  <div className="flex-1 relative group">
+                  <div className="flex-1 relative group input-container">
                     <Input
                       ref={inputRef}
                       value={inputMessage}

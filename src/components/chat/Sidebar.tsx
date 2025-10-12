@@ -186,7 +186,8 @@ export function Sidebar({
           onClick={onToggle}
           style={{ 
             background: `linear-gradient(135deg, ${themeConfig.colors.background}80, ${themeConfig.colors.surface}80)`,
-            backdropFilter: 'blur(8px)'
+            backdropFilter: 'blur(8px)',
+            zIndex: 40
           }}
         />
       )}
@@ -194,14 +195,15 @@ export function Sidebar({
       {/* 增强的侧边栏 */}
       <div
         ref={sidebarRef}
-        className={`fixed lg:relative inset-y-0 left-0 z-50 w-80 flex flex-col shadow-2xl ${
+        className={`fixed lg:relative inset-y-0 left-0 z-50 w-80 flex flex-col shadow-2xl chat-sidebar ${
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         } transition-transform duration-300 ease-in-out`}
         style={{ 
           background: `${themeConfig.colors.surface}95`,
           backdropFilter: 'blur(20px)',
           borderRight: `1px solid ${themeConfig.colors.primary}30`,
-          transition: 'all 0.3s ease'
+          transition: 'all 0.3s ease',
+          zIndex: 50
         }}
       >
         {/* 增强的头部 */}
