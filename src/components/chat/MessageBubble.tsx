@@ -325,8 +325,10 @@ export function MessageBubble({ message, isUser, index = 0 }: MessageBubbleProps
           <div 
             className="absolute inset-0 rounded-2xl opacity-10"
             style={{ 
-              background: themeConfig.colors.gradient,
+              backgroundImage: themeConfig.colors.gradient,
               backgroundSize: '200% 200%',
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'center',
               animation: 'aurora-flow 6s ease infinite'
             }}
           />

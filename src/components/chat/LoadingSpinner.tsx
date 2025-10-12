@@ -120,8 +120,10 @@ export function LoadingSpinner() {
           <div 
             className="absolute inset-0 opacity-10"
             style={{ 
-              background: themeConfig.colors.gradient,
+              backgroundImage: themeConfig.colors.gradient,
               backgroundSize: '200% 200%',
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'center',
               animation: 'aurora-flow 4s ease infinite'
             }}
           />
