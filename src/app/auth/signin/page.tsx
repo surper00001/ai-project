@@ -12,11 +12,13 @@ export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError("");
 
     try {
       const result = await signIn("credentials", {
@@ -25,14 +27,36 @@ export default function SignIn() {
         redirect: false,
       });
 
+      console.log("Sign in result:", result);
+      
       if (result?.error) {
         console.error("Sign in error:", result.error);
+        
+        // Provide user-friendly error messages
+        switch (result.error) {
+          case "CredentialsSignin":
+            setError("Invalid email or password. Please check your credentials and try again.");
+            break;
+          case "CallbackRouteError":
+            setError("Authentication service error. Please try again later.");
+            break;
+          default:
+            setError("Sign in failed. Please try again.");
+        }
+      } else if (result?.ok) {
+        console.log("Sign in successful, redirecting...");
+        // Wait a moment for session to be established
+        setTimeout(() => {
+          console.log("Redirecting to home page...");
+          window.location.href = "/";
+        }, 100);
       } else {
-        router.push("/");
-        router.refresh();
+        console.log("Unexpected result:", result);
+        setError("Login failed. Please try again.");
       }
     } catch (error) {
       console.error("Sign in error:", error);
+      setError("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -56,6 +80,12 @@ export default function SignIn() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {error && (
+            <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
+              {error}
+            </div>
+          )}
+          
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium">
@@ -137,13 +167,23 @@ export default function SignIn() {
             </Button>
           </div>
 
-          <div className="text-center">
+          <div className="text-center space-y-2">
             <p className="text-sm text-muted-foreground">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <Link href="/auth/register" className="text-primary hover:underline">
                 Sign up
               </Link>
             </p>
+            
+            {/* Development helper - remove in production */}
+            {process.env.NODE_ENV === "development" && (
+              <div className="p-2 text-xs text-blue-600 bg-blue-50 border border-blue-200 rounded">
+                <strong>Test Credentials:</strong><br />
+                Email: testuser@example.com<br />
+                Password: password123<br />
+                <em>✅ Fresh test user created and verified!</em>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

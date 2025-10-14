@@ -18,6 +18,17 @@ declare module "next-auth" {
   }
 }
 
+declare module "next-auth/react" {
+  interface Session {
+    user: {
+      id: string;
+      email: string;
+      name?: string | null;
+      image?: string | null;
+    };
+  }
+}
+
 declare module "next-auth/jwt" {
   interface JWT {
     id: string;

@@ -740,6 +740,49 @@ body {
   }
 }
 
+/* 性能优化：减少动画数量 */
+@media (max-width: 768px) {
+  /* 移动端禁用复杂动画 */
+  .float-particle,
+  .aurora-flow,
+  .neon-flicker,
+  .cyber-scan,
+  .rotate-halo,
+  .heartbeat,
+  .glow {
+    animation: none !important;
+  }
+  
+  /* 简化过渡效果 */
+  * {
+    transition-duration: 0.2s !important;
+  }
+}
+
+/* 低性能设备优化 */
+@media (max-width: 480px) {
+  /* 小屏幕设备禁用所有非必要动画 */
+  .float-particle,
+  .aurora-flow,
+  .neon-flicker,
+  .cyber-scan,
+  .rotate-halo,
+  .heartbeat,
+  .glow,
+  .bounce-in,
+  .slide-in-left,
+  .slide-in-right,
+  .slide-in-up,
+  .slide-in-down {
+    animation: none !important;
+  }
+  
+  /* 只保留基本的淡入效果 */
+  .fade-in {
+    animation: fade-in 0.3s ease-in;
+  }
+}
+
 /* 高性能动画优化 */
 .will-change-transform {
   will-change: transform;

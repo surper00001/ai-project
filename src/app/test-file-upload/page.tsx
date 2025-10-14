@@ -204,7 +204,7 @@ export default function TestFileUpload() {
             className="space-y-2 text-sm"
             style={{ color: themeConfig.colors.text, opacity: 0.8 }}
           >
-            <li>• 点击"上传文件"按钮或拖拽文件到上传区域</li>
+            <li>• 点击&quot;上传文件&quot;按钮或拖拽文件到上传区域</li>
             <li>• 支持文本文件、代码文件、配置文件等</li>
             <li>• 文件大小限制为 5MB</li>
             <li>• 上传成功后可以预览文件内容</li>

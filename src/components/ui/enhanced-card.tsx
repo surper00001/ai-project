@@ -76,7 +76,10 @@ export const EnhancedCard = forwardRef<HTMLDivElement, EnhancedCardProps>(
         case 'gradient':
           return {
             ...baseStyles,
-            background: themeConfig.colors.gradient,
+            backgroundImage: themeConfig.colors.gradient,
+            backgroundSize: '200% 200%',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'center',
             border: 'none',
             boxShadow: `0 8px 32px ${themeConfig.colors.primary}30`
           };
@@ -116,8 +119,10 @@ export const EnhancedCard = forwardRef<HTMLDivElement, EnhancedCardProps>(
         <div 
           className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
           style={{ 
-            background: themeConfig.colors.gradient,
+            backgroundImage: themeConfig.colors.gradient,
             backgroundSize: '200% 200%',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'center',
             animation: 'aurora-flow 8s ease infinite'
           }}
         />

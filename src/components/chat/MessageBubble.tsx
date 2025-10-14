@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, memo, useMemo, useCallback } from 'react';
 import { gsap } from 'gsap';
 import { Bot, User, Copy, Check, ThumbsUp, ThumbsDown, MoreVertical, RotateCcw } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -23,7 +23,7 @@ interface MessageBubbleProps {
  * 消息气泡组件
  * 显示用户和AI的消息，包含丰富的动画效果和交互功能
  */
-export function MessageBubble({ message, isUser, index = 0 }: MessageBubbleProps) {
+export const MessageBubble = memo(function MessageBubble({ message, isUser, index = 0 }: MessageBubbleProps) {
   // 获取主题配置
   const { themeConfig } = useTheme();
   
@@ -41,85 +41,154 @@ export function MessageBubble({ message, isUser, index = 0 }: MessageBubbleProps
   const [disliked, setDisliked] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
-  // 消息进入动画
+  // 简化的消息进入动画 - 性能优化
   useEffect(() => {
     if (bubbleRef.current && avatarRef.current && contentRef.current) {
       // 清除之前的动画
       gsap.killTweensOf([bubbleRef.current, avatarRef.current, contentRef.current]);
       
-      // 初始状态
-      gsap.set(bubbleRef.current, { opacity: 0, y: 30, scale: 0.9 });
-      gsap.set(avatarRef.current, { opacity: 0, scale: 0 });
-      gsap.set(contentRef.current, { opacity: 0, x: isUser ? 20 : -20 });
+      // 检查是否为移动设备或低性能设备
+      const isMobile = window.innerWidth <= 768;
+      const isLowEnd = window.innerWidth <= 480;
       
-      // 创建时间线动画
-      const tl = gsap.timeline({ delay: index * 0.1 });
-      
-      // 头像动画
-      tl.to(avatarRef.current, {
-        opacity: 1,
-        scale: 1,
-        duration: 0.4,
-        ease: "back.out(1.7)"
-      })
-      // 气泡容器动画
-      .to(bubbleRef.current, {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        duration: 0.5,
-        ease: "power2.out"
-      }, "-=0.2")
-      // 内容动画
-      .to(contentRef.current, {
-        opacity: 1,
-        x: 0,
-        duration: 0.4,
-        ease: "power2.out"
-      }, "-=0.3");
+      if (isLowEnd) {
+        // 低端设备：只使用简单的淡入效果
+        gsap.set([bubbleRef.current, avatarRef.current, contentRef.current], { opacity: 0 });
+        gsap.to([bubbleRef.current, avatarRef.current, contentRef.current], {
+          opacity: 1,
+          duration: 0.3,
+          ease: "power2.out"
+        });
+      } else if (isMobile) {
+        // 移动设备：简化动画
+        gsap.set(bubbleRef.current, { opacity: 0, y: 10 });
+        gsap.set(avatarRef.current, { opacity: 0 });
+        gsap.set(contentRef.current, { opacity: 0 });
+        
+        gsap.to(bubbleRef.current, {
+          opacity: 1,
+          y: 0,
+          duration: 0.3,
+          ease: "power2.out"
+        });
+        gsap.to([avatarRef.current, contentRef.current], {
+          opacity: 1,
+          duration: 0.2,
+          ease: "power2.out"
+        });
+      } else {
+        // 桌面设备：保留原有动画但减少延迟
+        gsap.set(bubbleRef.current, { opacity: 0, y: 20, scale: 0.95 });
+        gsap.set(avatarRef.current, { opacity: 0, scale: 0.8 });
+        gsap.set(contentRef.current, { opacity: 0, x: isUser ? 15 : -15 });
+        
+        const tl = gsap.timeline({ delay: Math.min(index * 0.05, 0.2) }); // 减少延迟
+        
+        tl.to(avatarRef.current, {
+          opacity: 1,
+          scale: 1,
+          duration: 0.3,
+          ease: "back.out(1.2)"
+        })
+        .to(bubbleRef.current, {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.4,
+          ease: "power2.out"
+        }, "-=0.15")
+        .to(contentRef.current, {
+          opacity: 1,
+          x: 0,
+          duration: 0.3,
+          ease: "power2.out"
+        }, "-=0.2");
+      }
     }
   }, [index, isUser]);
 
   // 内容更新动画 - 优化流式输入体验
   useEffect(() => {
     if (contentRef.current && message.content !== displayedContent) {
+      // 检查设备性能
+      const isMobile = window.innerWidth <= 768;
+      const isLowEnd = window.innerWidth <= 480;
+      
       // 只在内容长度变化较大时才执行动画，避免流式输入时的频繁动画
       const contentLengthDiff = Math.abs(message.content.length - displayedContent.length);
       
-      if (contentLengthDiff > 10 || displayedContent === '') {
-        // 内容变化时的动画
-        gsap.fromTo(contentRef.current,
-          { scale: 0.98, opacity: 0.8 },
-          { scale: 1, opacity: 1, duration: 0.2, ease: "power2.out" }
-        );
+      if (isLowEnd) {
+        // 低端设备：直接更新内容，无动画
+        setDisplayedContent(message.content);
+      } else if (isMobile) {
+        // 移动设备：只在首次加载时使用简单动画
+        if (displayedContent === '' && contentLengthDiff > 5) {
+          gsap.fromTo(contentRef.current,
+            { opacity: 0.7 },
+            { opacity: 1, duration: 0.15, ease: "power2.out" }
+          );
+        }
+        setDisplayedContent(message.content);
+      } else {
+        // 桌面设备：保留原有逻辑但减少动画频率
+        if (contentLengthDiff > 20 || displayedContent === '') {
+          gsap.fromTo(contentRef.current,
+            { scale: 0.99, opacity: 0.9 },
+            { scale: 1, opacity: 1, duration: 0.15, ease: "power2.out" }
+          );
+        }
+        setDisplayedContent(message.content);
       }
-      setDisplayedContent(message.content);
     }
   }, [message.content, displayedContent]);
 
-  // 悬停动画
+  // 悬停动画 - 性能优化
   useEffect(() => {
     if (bubbleRef.current) {
-      if (isHovered) {
-        gsap.to(bubbleRef.current, {
-          scale: 1.02,
-          y: -2,
-          duration: 0.3,
-          ease: "power2.out"
-        });
+      const isMobile = window.innerWidth <= 768;
+      const isLowEnd = window.innerWidth <= 480;
+      
+      if (isLowEnd) {
+        // 低端设备：禁用悬停动画
+        return;
+      } else if (isMobile) {
+        // 移动设备：简化悬停效果
+        if (isHovered) {
+          gsap.to(bubbleRef.current, {
+            scale: 1.01,
+            duration: 0.2,
+            ease: "power2.out"
+          });
+        } else {
+          gsap.to(bubbleRef.current, {
+            scale: 1,
+            duration: 0.2,
+            ease: "power2.out"
+          });
+        }
       } else {
-        gsap.to(bubbleRef.current, {
-          scale: 1,
-          y: 0,
-          duration: 0.3,
-          ease: "power2.out"
-        });
+        // 桌面设备：保留原有悬停效果
+        if (isHovered) {
+          gsap.to(bubbleRef.current, {
+            scale: 1.02,
+            y: -2,
+            duration: 0.3,
+            ease: "power2.out"
+          });
+        } else {
+          gsap.to(bubbleRef.current, {
+            scale: 1,
+            y: 0,
+            duration: 0.3,
+            ease: "power2.out"
+          });
+        }
       }
     }
   }, [isHovered]);
 
   // 复制到剪贴板
-  const copyToClipboard = async () => {
+  const copyToClipboard = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(message.content);
       setCopied(true);
@@ -139,10 +208,10 @@ export function MessageBubble({ message, isUser, index = 0 }: MessageBubbleProps
     } catch (error) {
       console.error('复制失败:', error);
     }
-  };
+  }, [message.content]);
 
   // 点赞功能
-  const handleLike = () => {
+  const handleLike = useCallback(() => {
     setLiked(!liked);
     if (disliked) setDisliked(false);
     
@@ -156,10 +225,10 @@ export function MessageBubble({ message, isUser, index = 0 }: MessageBubbleProps
         ease: "power2.inOut"
       });
     }
-  };
+  }, [liked, disliked]);
 
   // 点踩功能
-  const handleDislike = () => {
+  const handleDislike = useCallback(() => {
     setDisliked(!disliked);
     if (liked) setLiked(false);
     
@@ -173,10 +242,10 @@ export function MessageBubble({ message, isUser, index = 0 }: MessageBubbleProps
         ease: "power2.inOut"
       });
     }
-  };
+  }, [disliked, liked]);
 
   // 重新生成功能
-  const handleRegenerate = () => {
+  const handleRegenerate = useCallback(() => {
     // 重新生成动画
     if (bubbleRef.current) {
       gsap.to(bubbleRef.current, {
@@ -186,10 +255,10 @@ export function MessageBubble({ message, isUser, index = 0 }: MessageBubbleProps
       });
     }
     // 这里可以添加重新生成的逻辑
-  };
+  }, []);
 
   // 解析消息内容，分离代码块和普通文本
-  const parseContent = (content: string) => {
+  const parseContent = useCallback((content: string) => {
     const parts: Array<{ type: 'text' | 'code'; content: string; language?: string; filename?: string }> = [];
     
     // 匹配代码块：```language\ncode\n```
@@ -241,16 +310,16 @@ export function MessageBubble({ message, isUser, index = 0 }: MessageBubbleProps
     }
     
     return parts;
-  };
+  }, []);
 
   // 格式化普通文本内容
-  const formatTextContent = (content: string) => {
+  const formatTextContent = useCallback((content: string) => {
     return content
       .replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight: 600;">$1</strong>')
       .replace(/\*(.*?)\*/g, '<em style="font-style: italic;">$1</em>')
       .replace(/`(.*?)`/g, `<code style="background: ${themeConfig.colors.surface}50; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; border: 1px solid ${themeConfig.colors.primary}30;">$1</code>`)
       .replace(/\n/g, '<br>');
-  };
+  }, [themeConfig.colors.surface, themeConfig.colors.primary]);
 
   return (
     <div
@@ -312,9 +381,12 @@ export function MessageBubble({ message, isUser, index = 0 }: MessageBubbleProps
               : 'backdrop-blur-xl border text-gray-100'
           }`}
           style={{ 
-            background: isUser 
-              ? themeConfig.colors.gradient 
+            backgroundColor: isUser 
+              ? 'transparent' 
               : `${themeConfig.colors.surface}30`,
+            backgroundImage: isUser 
+              ? themeConfig.colors.gradient 
+              : 'none',
             borderColor: isUser 
               ? 'transparent' 
               : `${themeConfig.colors.primary}30`,
@@ -343,7 +415,7 @@ export function MessageBubble({ message, isUser, index = 0 }: MessageBubbleProps
               color: themeConfig.colors.text
             }}
           >
-            {parseContent(displayedContent).map((part, index) => (
+            {useMemo(() => parseContent(displayedContent), [displayedContent, parseContent]).map((part, index) => (
               <div key={index} className="mb-4 last:mb-0">
                 {part.type === 'text' ? (
                   <div dangerouslySetInnerHTML={{ __html: part.content }} />
@@ -497,4 +569,4 @@ export function MessageBubble({ message, isUser, index = 0 }: MessageBubbleProps
       </div>
     </div>
   );
-}
+});

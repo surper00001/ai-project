@@ -8,7 +8,7 @@ import { Eye, EyeOff, Search, X } from 'lucide-react';
 /**
  * 增强输入框组件接口
  */
-interface EnhancedInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface EnhancedInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   variant?: 'default' | 'glass' | 'neon' | 'cyberpunk';
   size?: 'sm' | 'md' | 'lg';
   icon?: React.ReactNode;
@@ -145,8 +145,10 @@ export const EnhancedInput = forwardRef<HTMLInputElement, EnhancedInputProps>(
           <div 
             className="absolute inset-0 rounded-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-300"
             style={{ 
-              background: themeConfig.colors.gradient,
+              backgroundImage: themeConfig.colors.gradient,
               backgroundSize: '200% 200%',
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'center',
               animation: 'aurora-flow 6s ease infinite'
             }}
           />

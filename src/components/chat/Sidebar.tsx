@@ -4,6 +4,8 @@ import { useEffect, useRef, useState, useMemo } from 'react';
 import { gsap } from 'gsap';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/contexts/ThemeContext';
+import { VirtualizedSessionList } from './VirtualizedSessionList';
+import { HistoryManagementPanel } from './HistoryManagementPanel';
 import { 
   Plus, 
   MessageSquare, 
@@ -14,7 +16,8 @@ import {
   Search,
   Filter,
   Star,
-  MoreHorizontal
+  MoreHorizontal,
+  Settings
 } from 'lucide-react';
 
 interface Message {
@@ -67,6 +70,7 @@ export function Sidebar({
   const [searchQuery, setSearchQuery] = useState('');
   const [showFavorites, setShowFavorites] = useState(false);
   const [sortBy, setSortBy] = useState<'recent' | 'name' | 'messages'>('recent');
+  const [showHistoryManagement, setShowHistoryManagement] = useState(false);
 
   // 稳定的样式对象，避免重新渲染时的样式冲突
   const headerBackgroundStyle = useMemo(() => ({
@@ -123,26 +127,23 @@ export function Sidebar({
     }
   }, [isOpen]);
 
-  // 搜索功能
-  const filteredSessions = sessions.filter(session => {
-    const matchesSearch = session.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         getLastMessage(session).toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch;
-  });
+  // 计算统计信息
+  const statistics = useMemo(() => {
+    const totalSessions = sessions.length;
+    const totalMessages = sessions.reduce((sum, session) => sum + session.messages.length, 0);
+    const averageMessagesPerSession = totalSessions > 0 ? totalMessages / totalSessions : 0;
+    const memoryUsage = sessions.reduce((sum, session) => {
+      const sessionSize = JSON.stringify(session).length;
+      return sum + sessionSize;
+    }, 0) / 1024; // 转换为KB
 
-  // 排序功能
-  const sortedSessions = [...filteredSessions].sort((a, b) => {
-    switch (sortBy) {
-      case 'recent':
-        return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-      case 'name':
-        return a.title.localeCompare(b.title);
-      case 'messages':
-        return b.messages.length - a.messages.length;
-      default:
-        return 0;
-    }
-  });
+    return {
+      totalSessions,
+      totalMessages,
+      averageMessagesPerSession,
+      memoryUsage
+    };
+  }, [sessions]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -345,148 +346,17 @@ export function Sidebar({
           </div>
         </div>
 
-        {/* 增强的会话列表 */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
-          {sortedSessions.length === 0 ? (
-            <div className="text-center py-12">
-              <div 
-                className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center relative overflow-hidden"
-                style={{ 
-                  background: themeConfig.colors.gradient,
-                  transition: 'all 0.3s ease'
-                }}
-              >
-                <MessageSquare className="w-10 h-10 text-white" />
-                <div className="absolute inset-0 rounded-full glow" />
-              </div>
-              <h3 
-                className="text-lg font-medium mb-2"
-                style={{ color: themeConfig.colors.text }}
-              >
-                {searchQuery ? '没有找到匹配的对话' : '还没有聊天记录'}
-              </h3>
-              <p 
-                className="text-sm"
-                style={{ color: themeConfig.colors.text, opacity: 0.7 }}
-              >
-                {searchQuery ? '尝试其他搜索词' : '创建新对话开始聊天'}
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {sortedSessions.map((session, index) => (
-                <div
-                  key={session.id}
-                  className={`p-4 cursor-pointer transition-all duration-300 group rounded-xl border relative overflow-hidden ${
-                    currentSession?.id === session.id 
-                      ? 'shadow-lg' 
-                      : 'hover:shadow-md'
-                  }`}
-                  style={{
-                    background: currentSession?.id === session.id 
-                      ? `${themeConfig.colors.primary}20`
-                      : `${themeConfig.colors.surface}20`,
-                    borderColor: currentSession?.id === session.id 
-                      ? `${themeConfig.colors.primary}50`
-                      : `${themeConfig.colors.primary}20`,
-                    animationDelay: `${index * 0.05}s`,
-                    transition: 'all 0.3s ease'
-                  }}
-                  onClick={() => onSelectSession(session.id)}
-                >
-                  {/* 会话项背景装饰 */}
-                  <div 
-                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    style={sessionItemBackgroundStyle}
-                  />
-                  
-                  <div className="relative z-10">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        {/* 会话标题 */}
-                        <div className="flex items-center space-x-2 mb-2">
-                          <h3 
-                            className="font-semibold truncate text-base"
-                            style={{ color: themeConfig.colors.text }}
-                          >
-                            {session.title}
-                          </h3>
-                          {session.messages.length > 10 && (
-                            <div 
-                              className="w-2 h-2 rounded-full"
-                              style={{ background: themeConfig.colors.accent }}
-                            />
-                          )}
-                        </div>
-                        
-                        {/* 最后一条消息 */}
-                        <p 
-                          className="text-sm truncate mb-3 leading-relaxed"
-                          style={{ color: themeConfig.colors.text, opacity: 0.8 }}
-                        >
-                          {getLastMessage(session)}
-                        </p>
-                        
-                        {/* 会话信息 */}
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3 text-xs">
-                            <div 
-                              className="flex items-center space-x-1"
-                              style={{ color: themeConfig.colors.text, opacity: 0.6 }}
-                            >
-                              <Clock className="w-3 h-3" />
-                              <span>{formatDate(session.updatedAt)}</span>
-                            </div>
-                            <div 
-                              className="flex items-center space-x-1"
-                              style={{ color: themeConfig.colors.text, opacity: 0.6 }}
-                            >
-                              <MessageSquare className="w-3 h-3" />
-                              <span>{session.messages.length} 条消息</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* 操作按钮 */}
-                      <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                        <Button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // 收藏功能
-                          }}
-                          variant="ghost"
-                          size="sm"
-                          className="rounded-full p-2 hover:scale-110 transition-all duration-300"
-                          style={{ 
-                            color: themeConfig.colors.text,
-                            background: `${themeConfig.colors.surface}50`
-                          }}
-                        >
-                          <Star className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onDeleteSession(session.id);
-                          }}
-                          variant="ghost"
-                          size="sm"
-                          className="rounded-full p-2 hover:scale-110 transition-all duration-300"
-                          style={{ 
-                            color: themeConfig.colors.primary,
-                            background: `${themeConfig.colors.primary}20`
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+        {/* 虚拟化会话列表 */}
+        <div className="flex-1 overflow-hidden">
+          <VirtualizedSessionList
+            sessions={sessions}
+            currentSession={currentSession}
+            onSelectSession={onSelectSession}
+            onDeleteSession={onDeleteSession}
+            searchQuery={searchQuery}
+            sortBy={sortBy}
+            className="h-full"
+          />
         </div>
 
         {/* 增强的底部信息 */}
@@ -542,7 +412,7 @@ export function Sidebar({
                     className="font-semibold"
                     style={{ color: themeConfig.colors.text }}
                   >
-                    {sessions.length}
+                    {statistics.totalSessions}
                   </p>
                   <p 
                     style={{ color: themeConfig.colors.text, opacity: 0.6 }}
@@ -555,7 +425,7 @@ export function Sidebar({
                     className="font-semibold"
                     style={{ color: themeConfig.colors.text }}
                   >
-                    {sessions.reduce((total, session) => total + session.messages.length, 0)}
+                    {statistics.totalMessages}
                   </p>
                   <p 
                     style={{ color: themeConfig.colors.text, opacity: 0.6 }}
@@ -564,10 +434,59 @@ export function Sidebar({
                   </p>
                 </div>
               </div>
+              
+              {/* 管理按钮 */}
+              <div className="mt-4">
+                <Button
+                  onClick={() => setShowHistoryManagement(true)}
+                  variant="outline"
+                  size="sm"
+                  className="w-full rounded-lg"
+                  style={{ 
+                    borderColor: themeConfig.colors.primary,
+                    color: themeConfig.colors.text
+                  }}
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  历史管理
+                </Button>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* 历史记录管理面板 */}
+      <HistoryManagementPanel
+        isOpen={showHistoryManagement}
+        onClose={() => setShowHistoryManagement(false)}
+        onCleanup={() => {
+          // 这里可以添加清理逻辑
+          console.log('清理历史记录');
+        }}
+        onExport={() => {
+          // 导出逻辑
+          const data = JSON.stringify(sessions, null, 2);
+          const blob = new Blob([data], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `chat-history-${new Date().toISOString().split('T')[0]}.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+        }}
+        onImport={(data) => {
+          // 导入逻辑
+          try {
+            const importedSessions = JSON.parse(data);
+            console.log('导入会话数据:', importedSessions);
+            // 这里需要更新父组件的sessions状态
+          } catch (error) {
+            console.error('导入失败:', error);
+          }
+        }}
+        statistics={statistics}
+      />
     </>
   );
 }

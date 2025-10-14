@@ -7,11 +7,14 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Button } from '@/components/ui/button';
 import { EnhancedInput as Input } from '@/components/ui/enhanced-input';
 import { MessageBubble } from './MessageBubble';
+import { VirtualizedMessageList } from './VirtualizedMessageList';
 import { Sidebar } from './Sidebar';
 import { LoadingSpinner } from './LoadingSpinner';
 import { FileUploadButton } from './FileUploadButton';
 import { SimpleThemeToggle } from '@/components/SimpleThemeToggle';
+import { PerformanceMonitor } from '@/components/PerformanceMonitor';
 import { useTheme } from '@/contexts/ThemeContext';
+import { historyManager } from '@/lib/historyManager';
 import { Send, Plus, Bot, Settings, Volume2, VolumeX, Maximize2, Minimize2, Square, Upload, FileText, X } from 'lucide-react';
 
 // 注册GSAP插件
@@ -65,6 +68,7 @@ export function ChatInterface() {
   const [abortController, setAbortController] = useState<AbortController | null>(null);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [showPerformanceMonitor, setShowPerformanceMonitor] = useState(false);
   
   // 粒子效果状态
   const [particles, setParticles] = useState<Array<{
@@ -85,43 +89,84 @@ export function ChatInterface() {
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pendingContentRef = useRef<string>('');
 
-  // 页面加载动画
+  // 页面加载动画 - 性能优化
   useEffect(() => {
     if (mainContainerRef.current && backgroundRef.current) {
       // 清除之前的动画
       gsap.killTweensOf([mainContainerRef.current, backgroundRef.current]);
       
-      // 初始状态
-      gsap.set(mainContainerRef.current, { opacity: 0, y: 50 });
-      gsap.set(backgroundRef.current, { opacity: 0, scale: 1.1 });
+      const isMobile = window.innerWidth <= 768;
+      const isLowEnd = window.innerWidth <= 480;
       
-      // 页面进入动画
-      const tl = gsap.timeline();
-      tl.to(backgroundRef.current, {
-        opacity: 1,
-        scale: 1,
-        duration: 1.5,
-        ease: "power2.out"
-      })
-      .to(mainContainerRef.current, {
-        opacity: 1,
-        y: 0,
-        duration: 0.8,
-        ease: "back.out(1.7)"
-      }, "-=0.5");
+      if (isLowEnd) {
+        // 低端设备：直接显示，无动画
+        gsap.set([mainContainerRef.current, backgroundRef.current], { opacity: 1, y: 0, scale: 1 });
+      } else if (isMobile) {
+        // 移动设备：简化动画
+        gsap.set(mainContainerRef.current, { opacity: 0, y: 20 });
+        gsap.set(backgroundRef.current, { opacity: 0 });
+        
+        gsap.to(backgroundRef.current, {
+          opacity: 1,
+          duration: 0.5,
+          ease: "power2.out"
+        });
+        gsap.to(mainContainerRef.current, {
+          opacity: 1,
+          y: 0,
+          duration: 0.4,
+          ease: "power2.out"
+        });
+      } else {
+        // 桌面设备：保留原有动画但减少时长
+        gsap.set(mainContainerRef.current, { opacity: 0, y: 30 });
+        gsap.set(backgroundRef.current, { opacity: 0, scale: 1.05 });
+        
+        const tl = gsap.timeline();
+        tl.to(backgroundRef.current, {
+          opacity: 1,
+          scale: 1,
+          duration: 1.0,
+          ease: "power2.out"
+        })
+        .to(mainContainerRef.current, {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          ease: "back.out(1.4)"
+        }, "-=0.3");
+      }
     }
   }, []);
 
-  // 主题切换动画
+  // 主题切换动画 - 性能优化
   useEffect(() => {
     if (isTransitioning && backgroundRef.current) {
-      gsap.to(backgroundRef.current, {
-        scale: 1.05,
-        duration: 0.3,
-        ease: "power2.inOut",
-        yoyo: true,
-        repeat: 1
-      });
+      const isMobile = window.innerWidth <= 768;
+      const isLowEnd = window.innerWidth <= 480;
+      
+      if (isLowEnd) {
+        // 低端设备：禁用主题切换动画
+        return;
+      } else if (isMobile) {
+        // 移动设备：简化主题切换动画
+        gsap.to(backgroundRef.current, {
+          scale: 1.02,
+          duration: 0.2,
+          ease: "power2.inOut",
+          yoyo: true,
+          repeat: 1
+        });
+      } else {
+        // 桌面设备：保留原有动画
+        gsap.to(backgroundRef.current, {
+          scale: 1.05,
+          duration: 0.3,
+          ease: "power2.inOut",
+          yoyo: true,
+          repeat: 1
+        });
+      }
     }
   }, [isTransitioning]);
 
@@ -132,15 +177,31 @@ export function ChatInterface() {
     }
   }, [session]);
 
+  // 初始化历史记录管理器
+  useEffect(() => {
+    historyManager.setSessions(sessions);
+  }, [sessions]);
+
   // 滚动到底部
   useEffect(() => {
     scrollToBottom();
   }, [currentSession?.messages]);
 
-  // 生成粒子效果数据（仅在客户端）
+  // 生成粒子效果数据（仅在客户端）- 性能优化
   useEffect(() => {
     const generateParticles = () => {
-      const newParticles = Array.from({ length: 20 }, () => ({
+      const isMobile = window.innerWidth <= 768;
+      const isLowEnd = window.innerWidth <= 480;
+      
+      // 根据设备性能调整粒子数量
+      let particleCount = 20;
+      if (isLowEnd) {
+        particleCount = 0; // 低端设备不显示粒子
+      } else if (isMobile) {
+        particleCount = 5; // 移动设备减少粒子数量
+      }
+      
+      const newParticles = Array.from({ length: particleCount }, () => ({
         left: Math.random() * 100,
         top: Math.random() * 100,
         animationDelay: Math.random() * 3,
@@ -374,7 +435,7 @@ export function ChatInterface() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // 优化的流式内容更新函数
+  // 优化的流式内容更新函数 - 性能优化
   const updateStreamingContent = useCallback((messageId: string, content: string, immediate = false) => {
     pendingContentRef.current = content;
     
@@ -382,6 +443,10 @@ export function ChatInterface() {
     if (updateTimeoutRef.current) {
       clearTimeout(updateTimeoutRef.current);
     }
+    
+    // 检查设备性能
+    const isMobile = window.innerWidth <= 768;
+    const isLowEnd = window.innerWidth <= 480;
     
     // 立即更新或延迟更新
     const updateContent = () => {
@@ -404,8 +469,15 @@ export function ChatInterface() {
     if (immediate) {
       updateContent();
     } else {
-      // 使用节流，每100ms最多更新一次
-      updateTimeoutRef.current = setTimeout(updateContent, 100);
+      // 根据设备性能调整节流时间
+      let throttleTime = 100; // 默认100ms
+      if (isLowEnd) {
+        throttleTime = 200; // 低端设备增加节流时间
+      } else if (isMobile) {
+        throttleTime = 150; // 移动设备适中的节流时间
+      }
+      
+      updateTimeoutRef.current = setTimeout(updateContent, throttleTime);
     }
   }, []);
 
@@ -703,6 +775,50 @@ ${file.content}
     setUploadedFiles(prev => prev.filter(file => file.id !== fileId));
   };
 
+  // 性能问题处理
+  const handlePerformanceIssue = (metrics: any) => {
+    console.warn('性能问题检测:', metrics);
+    // 可以在这里添加自动优化逻辑
+    if (metrics.messageCount > 100) {
+      // 建议清理旧消息
+      console.log('建议清理旧消息以提升性能');
+    }
+  };
+
+  // 历史记录管理功能
+  const handleHistoryCleanup = () => {
+    const cleanedSessions = historyManager.cleanupOldSessions();
+    const cleanedMessages = historyManager.cleanupLongSessions();
+    const limitedSessions = historyManager.limitSessionCount();
+    
+    if (cleanedSessions > 0 || cleanedMessages > 0 || limitedSessions > 0) {
+      // 重新加载会话
+      loadSessions();
+      console.log(`清理完成: ${cleanedSessions}个会话, ${cleanedMessages}个长会话, ${limitedSessions}个限制会话`);
+    }
+  };
+
+  const handleHistoryExport = () => {
+    const data = historyManager.exportSessions();
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `chat-history-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleHistoryImport = (data: string) => {
+    if (historyManager.importSessions(data)) {
+      // 重新加载会话
+      loadSessions();
+      console.log('历史记录导入成功');
+    } else {
+      console.error('历史记录导入失败');
+    }
+  };
+
   // 稳定的样式对象，避免重新渲染时的样式冲突
   const inputAreaBackgroundStyle = useMemo(() => ({
     backgroundImage: themeConfig.colors.gradient,
@@ -954,6 +1070,21 @@ ${file.content}
                   <Settings className="w-4 h-4" />
                 </Button>
 
+                {/* 性能监控按钮 */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowPerformanceMonitor(!showPerformanceMonitor)}
+                  className="rounded-full p-2 transition-all duration-300 hover:scale-110"
+                  style={{ 
+                    color: themeConfig.colors.text,
+                    background: showPerformanceMonitor ? `${themeConfig.colors.primary}30` : 'transparent'
+                  }}
+                  title="性能监控"
+                >
+                  📊
+                </Button>
+
                 {/* 主题切换按钮 */}
                 <SimpleThemeToggle />
               </div>
@@ -976,17 +1107,11 @@ ${file.content}
         >
           {currentSession ? (
             <>
-              {/* 消息列表 */}
-              <div className="space-y-6">
-                {currentSession.messages.map((message, index) => (
-                  <MessageBubble
-                    key={message.id}
-                    message={message}
-                    isUser={message.role === 'USER'}
-                    index={index}
-                  />
-                ))}
-              </div>
+              {/* 虚拟化消息列表 */}
+              <VirtualizedMessageList
+                messages={currentSession.messages}
+                className="flex-1 p-4 sm:p-6"
+              />
               
               {/* 加载指示器 */}
               {isLoading && <LoadingSpinner />}
@@ -1369,6 +1494,14 @@ ${file.content}
           </div>
         )}
       </div>
+
+      {/* 性能监控组件 */}
+      {showPerformanceMonitor && (
+        <PerformanceMonitor
+          messageCount={currentSession?.messages.length || 0}
+          onPerformanceIssue={handlePerformanceIssue}
+        />
+      )}
     </div>
   );
 }

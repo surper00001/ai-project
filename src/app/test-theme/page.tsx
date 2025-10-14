@@ -60,6 +60,7 @@ export default function TestThemePage() {
           {themes.map(({ name, icon: Icon, label }) => (
             <Button
               key={name}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               onClick={() => setTheme(name as any)}
               disabled={isTransitioning}
               className={`p-4 h-auto flex flex-col items-center space-y-2 transition-all duration-300 ${
