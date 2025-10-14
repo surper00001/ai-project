@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const QWEN_API_KEY = 'sk-30a8e6a72d6a4bda97f0ae9ca7d02fa3';
-const QWEN_API_URL = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation';
+const QWEN_API_KEY = process.env.QWEN_API_KEY || 'sk-30a8e6a72d6a4bda97f0ae9ca7d02fa3';
+const QWEN_API_URL = process.env.QWEN_API_URL || 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation';
 
 export interface QwenMessage {
   role: 'user' | 'assistant' | 'system';

@@ -1,5 +1,6 @@
 "use client";
 
+// @ts-expect-error - next-auth type definitions issue
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
