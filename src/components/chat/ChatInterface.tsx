@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 // @ts-expect-error - next-auth type definitions issue
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,7 @@ import { SimpleThemeToggle } from '@/components/SimpleThemeToggle';
 import { PerformanceMonitor } from '@/components/PerformanceMonitor';
 import { useTheme } from '@/contexts/ThemeContext';
 import { historyManager } from '@/lib/historyManager';
-import { Send, Plus, Bot, Settings, Volume2, VolumeX, Maximize2, Minimize2, Square, FileText, X } from 'lucide-react';
+import { Send, Plus, Bot, Settings, Volume2, VolumeX, Maximize2, Minimize2, Square, FileText, X, LogOut } from 'lucide-react';
 
 // 注册GSAP插件
 gsap.registerPlugin(ScrollTrigger);
@@ -222,6 +222,18 @@ export function ChatInterface() {
       }
     };
   }, []);
+
+  // 退出登录处理函数
+  const handleLogout = async () => {
+    try {
+      await signOut({ 
+        callbackUrl: '/auth/signin',
+        redirect: true 
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
 
   const loadSessions = async () => {
     try {
@@ -1158,6 +1170,21 @@ ${file.content}
 
                 {/* 主题切换按钮 */}
                 <SimpleThemeToggle />
+
+                {/* 退出登录按钮 */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="rounded-full p-2 transition-all duration-300 hover:scale-110"
+                  style={{ 
+                    color: themeConfig.colors.text,
+                    background: 'transparent'
+                  }}
+                  title="退出登录"
+                >
+                  <LogOut className="w-4 h-4" />
+                </Button>
               </div>
             </div>
           </div>
