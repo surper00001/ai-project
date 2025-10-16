@@ -133,3 +133,6 @@ Direct URL: postgresql://username:password@host:port/database
 - ✅ 成功部署 AI 项目
 
 **无需修改任何代码**，所有配置都在 Vercel Dashboard 中完成！
+
+
+

@@ -82,3 +82,6 @@ GITHUB_CLIENT_SECRET=your-github-client-secret
 3. 确保所有环境变量都设置为 "Production" 环境
 4. `NEXTAUTH_URL` 必须与你的实际 Vercel 应用 URL 匹配
 5. 数据库连接字符串格式必须正确
+
+
+

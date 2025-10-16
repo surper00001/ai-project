@@ -9,14 +9,11 @@ import { HistoryManagementPanel } from './HistoryManagementPanel';
 import { 
   Plus, 
   MessageSquare, 
-  Trash2, 
   X, 
   Clock,
   Bot,
   Search,
   Filter,
-  Star,
-  MoreHorizontal,
   Settings
 } from 'lucide-react';
 
@@ -68,7 +65,7 @@ export function Sidebar({
   
   // 状态管理
   const [searchQuery, setSearchQuery] = useState('');
-  const [showFavorites, setShowFavorites] = useState(false);
+  // const [showFavorites, setShowFavorites] = useState(false); // 暂时未使用
   const [sortBy, setSortBy] = useState<'recent' | 'name' | 'messages'>('recent');
   const [showHistoryManagement, setShowHistoryManagement] = useState(false);
 
@@ -79,11 +76,11 @@ export function Sidebar({
     animation: 'aurora-flow 8s ease infinite'
   }), [themeConfig.colors.gradient]);
 
-  const sessionItemBackgroundStyle = useMemo(() => ({
-    backgroundImage: themeConfig.colors.gradient,
-    backgroundSize: '200% 200%',
-    animation: 'aurora-flow 6s ease infinite'
-  }), [themeConfig.colors.gradient]);
+  // const sessionItemBackgroundStyle = useMemo(() => ({
+  //   backgroundImage: themeConfig.colors.gradient,
+  //   backgroundSize: '200% 200%',
+  //   animation: 'aurora-flow 6s ease infinite'
+  // }), [themeConfig.colors.gradient]);
 
   const footerBackgroundStyle = useMemo(() => ({
     backgroundImage: themeConfig.colors.gradient,
@@ -145,37 +142,37 @@ export function Sidebar({
     };
   }, [sessions]);
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+  // const formatDate = (dateString: string) => {
+  //   const date = new Date(dateString);
+  //   const now = new Date();
+  //   const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
 
-    if (diffInHours < 24) {
-      return date.toLocaleTimeString('zh-CN', {
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } else if (diffInHours < 168) { // 7 days
-      return date.toLocaleDateString('zh-CN', {
-        weekday: 'short',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } else {
-      return date.toLocaleDateString('zh-CN', {
-        month: 'short',
-        day: 'numeric'
-      });
-    }
-  };
+  //   if (diffInHours < 24) {
+  //     return date.toLocaleTimeString('zh-CN', {
+  //       hour: '2-digit',
+  //       minute: '2-digit'
+  //     });
+  //   } else if (diffInHours < 168) { // 7 days
+  //     return date.toLocaleDateString('zh-CN', {
+  //       weekday: 'short',
+  //       hour: '2-digit',
+  //       minute: '2-digit'
+  //     });
+  //   } else {
+  //     return date.toLocaleDateString('zh-CN', {
+  //       month: 'short',
+  //       day: 'numeric'
+  //     });
+  //   }
+  // };
 
-  const getLastMessage = (session: ChatSession) => {
-    if (session.messages.length === 0) return '新对话';
-    const lastMessage = session.messages[session.messages.length - 1];
-    return lastMessage.content.length > 50 
-      ? lastMessage.content.substring(0, 50) + '...'
-      : lastMessage.content;
-  };
+  // const getLastMessage = (session: ChatSession) => {
+  //   if (session.messages.length === 0) return '新对话';
+  //   const lastMessage = session.messages[session.messages.length - 1];
+  //   return lastMessage.content.length > 50 
+  //     ? lastMessage.content.substring(0, 50) + '...'
+  //     : lastMessage.content;
+  // };
 
   return (
     <>

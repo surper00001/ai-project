@@ -14,7 +14,7 @@ export default function SignIn() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const router = useRouter();
+  // const router = useRouter(); // 暂时未使用
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

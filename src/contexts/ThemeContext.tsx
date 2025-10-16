@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 
 // 定义主题类型
 export type Theme = 'light' | 'dark' | 'cyberpunk' | 'neon' | 'aurora';
@@ -134,7 +134,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const themeConfig = themeConfigs[theme];
 
   // 设置主题
-  const setTheme = (newTheme: Theme) => {
+  const setTheme = useCallback((newTheme: Theme) => {
     if (newTheme === theme) return;
     
     setIsTransitioning(true);
@@ -154,7 +154,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         document.documentElement.style.transition = '';
       }, 100);
     }, 250);
-  };
+  }, [theme]);
 
   // 切换主题（循环切换）
   const toggleTheme = () => {

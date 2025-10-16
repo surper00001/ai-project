@@ -6,7 +6,8 @@ import { prisma } from "./prisma";
 import bcrypt from "bcryptjs";
 
 export const authOptions = {
-  adapter: PrismaAdapter(prisma),
+  // 暂时禁用Prisma适配器，使用JWT策略
+  // adapter: PrismaAdapter(prisma),
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",

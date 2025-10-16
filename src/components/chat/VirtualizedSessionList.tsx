@@ -6,9 +6,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { 
   MessageSquare, 
   Trash2, 
-  Star, 
   Clock,
-  MoreHorizontal,
   ChevronDown,
   ChevronUp
 } from 'lucide-react';

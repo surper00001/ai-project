@@ -67,3 +67,6 @@ node setup-vercel-env.js
 2. 确保所有变量都设置为 "Production" 环境
 3. 重新部署项目
 4. 查看 Vercel 部署日志中的错误信息
+
+
+

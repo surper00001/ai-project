@@ -35,7 +35,7 @@ export const MessageBubble = memo(function MessageBubble({ message, isUser, inde
   // 状态管理
   const [copied, setCopied] = useState(false);
   const [displayedContent, setDisplayedContent] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
+  const [isTyping] = useState(false); // setIsTyping 暂时未使用
   const [showActions, setShowActions] = useState(false);
   const [liked, setLiked] = useState(false);
   const [disliked, setDisliked] = useState(false);
@@ -257,6 +257,15 @@ export const MessageBubble = memo(function MessageBubble({ message, isUser, inde
     // 这里可以添加重新生成的逻辑
   }, []);
 
+  // 格式化普通文本内容
+  const formatTextContent = useCallback((content: string) => {
+    return content
+      .replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight: 600;">$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em style="font-style: italic;">$1</em>')
+      .replace(/`(.*?)`/g, `<code style="background: ${themeConfig.colors.surface}50; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; border: 1px solid ${themeConfig.colors.primary}30;">$1</code>`)
+      .replace(/\n/g, '<br>');
+  }, [themeConfig.colors.surface, themeConfig.colors.primary]);
+
   // 解析消息内容，分离代码块和普通文本
   const parseContent = useCallback((content: string) => {
     const parts: Array<{ type: 'text' | 'code'; content: string; language?: string; filename?: string }> = [];
@@ -310,16 +319,7 @@ export const MessageBubble = memo(function MessageBubble({ message, isUser, inde
     }
     
     return parts;
-  }, []);
-
-  // 格式化普通文本内容
-  const formatTextContent = useCallback((content: string) => {
-    return content
-      .replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight: 600;">$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em style="font-style: italic;">$1</em>')
-      .replace(/`(.*?)`/g, `<code style="background: ${themeConfig.colors.surface}50; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; border: 1px solid ${themeConfig.colors.primary}30;">$1</code>`)
-      .replace(/\n/g, '<br>');
-  }, [themeConfig.colors.surface, themeConfig.colors.primary]);
+  }, [formatTextContent]);
 
   return (
     <div

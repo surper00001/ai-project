@@ -92,9 +92,42 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error sending message:", error);
+    
+    // 根据错误类型返回不同的错误信息
+    let errorMessage = 'AI服务暂时不可用，请稍后重试';
+    let statusCode = 500;
+    
+    if (error instanceof Error) {
+      switch (error.message) {
+        case 'API_QUOTA_EXCEEDED':
+          errorMessage = 'API调用次数已达上限，请稍后再试或联系管理员';
+          statusCode = 429;
+          break;
+        case 'API_KEY_INVALID':
+          errorMessage = 'API密钥配置有误，请联系管理员';
+          statusCode = 401;
+          break;
+        case 'API_SERVICE_UNAVAILABLE':
+          errorMessage = 'AI服务暂时不可用，请稍后重试';
+          statusCode = 503;
+          break;
+        case 'NETWORK_ERROR':
+          errorMessage = '网络连接异常，请检查网络后重试';
+          statusCode = 502;
+          break;
+        case 'API_ERROR':
+          errorMessage = 'AI服务出现错误，请稍后重试';
+          statusCode = 502;
+          break;
+        default:
+          errorMessage = '未知错误，请稍后重试';
+          statusCode = 500;
+      }
+    }
+    
     return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
+      { error: errorMessage },
+      { status: statusCode }
     );
   }
 }

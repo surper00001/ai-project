@@ -7,7 +7,7 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Button } from '@/components/ui/button';
 import { EnhancedInput as Input } from '@/components/ui/enhanced-input';
-import { MessageBubble } from './MessageBubble';
+// import { MessageBubble } from './MessageBubble'; // 暂时未使用
 import { VirtualizedMessageList } from './VirtualizedMessageList';
 import { Sidebar } from './Sidebar';
 import { LoadingSpinner } from './LoadingSpinner';
@@ -16,7 +16,7 @@ import { SimpleThemeToggle } from '@/components/SimpleThemeToggle';
 import { PerformanceMonitor } from '@/components/PerformanceMonitor';
 import { useTheme } from '@/contexts/ThemeContext';
 import { historyManager } from '@/lib/historyManager';
-import { Send, Plus, Bot, Settings, Volume2, VolumeX, Maximize2, Minimize2, Square, Upload, FileText, X } from 'lucide-react';
+import { Send, Plus, Bot, Settings, Volume2, VolumeX, Maximize2, Minimize2, Square, FileText, X } from 'lucide-react';
 
 // 注册GSAP插件
 gsap.registerPlugin(ScrollTrigger);
@@ -225,10 +225,17 @@ export function ChatInterface() {
 
   const loadSessions = async () => {
     try {
-      const response = await fetch('/api/chat/sessions');
+      const response = await fetch('/api/chat/sessions', {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       if (response.ok) {
         const data = await response.json();
         setSessions(data.sessions);
+      } else {
+        console.error('Failed to load sessions:', response.status, response.statusText);
       }
     } catch (error) {
       console.error('Error loading sessions:', error);
@@ -239,6 +246,7 @@ export function ChatInterface() {
     try {
       const response = await fetch('/api/chat/sessions', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: 'New Chat' })
       });
@@ -257,11 +265,18 @@ export function ChatInterface() {
 
   const selectSession = async (sessionId: string) => {
     try {
-      const response = await fetch(`/api/chat/sessions/${sessionId}`);
+      const response = await fetch(`/api/chat/sessions/${sessionId}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       if (response.ok) {
         const data = await response.json();
         setCurrentSession(data.session);
         setSidebarOpen(false);
+      } else {
+        console.error('Failed to select session:', response.status, response.statusText);
       }
     } catch (error) {
       console.error('Error loading session:', error);
@@ -271,7 +286,11 @@ export function ChatInterface() {
   const deleteSession = async (sessionId: string) => {
     try {
       const response = await fetch(`/api/chat/sessions/${sessionId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
 
       if (response.ok) {
@@ -279,6 +298,8 @@ export function ChatInterface() {
         if (currentSession?.id === sessionId) {
           setCurrentSession(null);
         }
+      } else {
+        console.error('Failed to delete session:', response.status, response.statusText);
       }
     } catch (error) {
       console.error('Error deleting session:', error);
@@ -309,6 +330,7 @@ export function ChatInterface() {
     try {
       const response = await fetch('/api/chat/stream', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionId: currentSession.id,
@@ -327,8 +349,8 @@ export function ChatInterface() {
       }
 
       const decoder = new TextDecoder();
-      let userMessage: any = null;
-      let assistantMessage: any = null;
+      let userMessage: { id: string; content: string; role: 'USER'; createdAt: string } | null = null;
+      let assistantMessage: { id: string; content: string; role: 'ASSISTANT'; createdAt: string } | null = null;
       let currentAssistantContent = '';
 
       while (true) {
@@ -348,10 +370,12 @@ export function ChatInterface() {
                 case 'user_message':
                   userMessage = data.message;
                   // 立即添加用户消息
-                  setCurrentSession(prev => prev ? {
-                    ...prev,
-                    messages: [...prev.messages, userMessage]
-                  } : null);
+                  if (userMessage) {
+                    setCurrentSession(prev => prev ? {
+                      ...prev,
+                      messages: [...prev.messages, userMessage as Message]
+                    } : null);
+                  }
                   break;
                   
                 case 'start':
@@ -360,13 +384,14 @@ export function ChatInterface() {
                     id: data.messageId,
                     content: '',
                     role: 'ASSISTANT',
-                    createdAt: new Date().toISOString(),
-                    chatSessionId: currentSession.id
+                    createdAt: new Date().toISOString()
                   };
-                  setCurrentSession(prev => prev ? {
-                    ...prev,
-                    messages: [...prev.messages, assistantMessage]
-                  } : null);
+                  if (assistantMessage) {
+                    setCurrentSession(prev => prev ? {
+                      ...prev,
+                      messages: [...prev.messages, assistantMessage]
+                    } : null);
+                  }
                   break;
                   
                 case 'chunk':
@@ -410,10 +435,29 @@ export function ChatInterface() {
                   break;
                   
                 case 'error':
+                case 'quota_exceeded':
+                case 'api_key_error':
+                case 'service_unavailable':
+                case 'network_error':
+                case 'api_error':
+                case 'unknown_error':
                   console.error('Stream error:', data.error);
+                  
+                  // 添加错误消息到聊天界面
+                  const errorMessage = {
+                    id: Date.now().toString(),
+                    content: data.error || 'AI服务出现错误，请稍后重试',
+                    role: 'ASSISTANT' as const,
+                    createdAt: new Date().toISOString()
+                  };
+                  
+                  setCurrentSession(prev => prev ? {
+                    ...prev,
+                    messages: [...prev.messages, errorMessage]
+                  } : null);
                   break;
               }
-            } catch (e) {
+            } catch {
               // 忽略解析错误
             }
           }
@@ -622,6 +666,7 @@ ${file.content}
     try {
       const response = await fetch('/api/chat/stream', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionId: currentSession.id,
@@ -641,7 +686,7 @@ ${file.content}
       }
 
       const decoder = new TextDecoder();
-      let assistantMessage: any = null;
+      let assistantMessage: { id: string; content: string; role: 'ASSISTANT'; createdAt: string } | null = null;
       let currentContent = '';
 
       while (true) {
@@ -680,7 +725,7 @@ ${file.content}
                   return { ...prev, messages: updatedMessages };
                 });
               }
-            } catch (e) {
+            } catch {
               // 忽略解析错误
             }
           }
@@ -702,10 +747,35 @@ ${file.content}
         } : null);
       } else {
         console.error('Error analyzing file:', error);
-        // 添加错误消息
+        
+        // 根据错误类型显示不同的错误消息
+        let errorContent = '❌ 文件分析失败，请稍后重试';
+        
+        if (error instanceof Error) {
+          switch (error.message) {
+            case 'API_QUOTA_EXCEEDED':
+              errorContent = '⚠️ API调用次数已达上限，无法分析文件，请稍后再试或联系管理员';
+              break;
+            case 'API_KEY_INVALID':
+              errorContent = '🔑 API密钥配置有误，请联系管理员';
+              break;
+            case 'API_SERVICE_UNAVAILABLE':
+              errorContent = '🔧 AI服务暂时不可用，请稍后重试';
+              break;
+            case 'NETWORK_ERROR':
+              errorContent = '🌐 网络连接异常，请检查网络后重试';
+              break;
+            case 'API_ERROR':
+              errorContent = '❌ AI服务出现错误，请稍后重试';
+              break;
+            default:
+              errorContent = '❌ 文件分析失败，请检查网络连接或稍后重试';
+          }
+        }
+        
         const errorMessage = {
           id: Date.now().toString(),
-          content: `❌ 文件分析失败，请检查网络连接或稍后重试。`,
+          content: errorContent,
           role: 'ASSISTANT' as const,
           createdAt: new Date().toISOString()
         };
@@ -777,7 +847,7 @@ ${file.content}
   };
 
   // 性能问题处理
-  const handlePerformanceIssue = (metrics: any) => {
+  const handlePerformanceIssue = (metrics: { messageCount: number; [key: string]: unknown }) => {
     console.warn('性能问题检测:', metrics);
     // 可以在这里添加自动优化逻辑
     if (metrics.messageCount > 100) {
@@ -799,26 +869,26 @@ ${file.content}
     }
   };
 
-  const handleHistoryExport = () => {
-    const data = historyManager.exportSessions();
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `chat-history-${new Date().toISOString().split('T')[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  // const handleHistoryExport = () => {
+  //   const data = historyManager.exportSessions();
+  //   const blob = new Blob([data], { type: 'application/json' });
+  //   const url = URL.createObjectURL(blob);
+  //   const a = document.createElement('a');
+  //   a.href = url;
+  //   a.download = `chat-history-${new Date().toISOString().split('T')[0]}.json`;
+  //   a.click();
+  //   URL.revokeObjectURL(url);
+  // };
 
-  const handleHistoryImport = (data: string) => {
-    if (historyManager.importSessions(data)) {
-      // 重新加载会话
-      loadSessions();
-      console.log('历史记录导入成功');
-    } else {
-      console.error('历史记录导入失败');
-    }
-  };
+  // const handleHistoryImport = (data: string) => {
+  //   if (historyManager.importSessions(data)) {
+  //     // 重新加载会话
+  //     loadSessions();
+  //     console.log('历史记录导入成功');
+  //   } else {
+  //     console.error('历史记录导入失败');
+  //   }
+  // };
 
   // 稳定的样式对象，避免重新渲染时的样式冲突
   const inputAreaBackgroundStyle = useMemo(() => ({

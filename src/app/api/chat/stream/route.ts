@@ -153,9 +153,43 @@ export async function POST(request: NextRequest) {
             })}\n\n`));
           } else {
             console.error("Stream error:", error);
+            
+            // 根据错误类型发送不同的错误信息
+            let errorMessage = 'AI服务暂时不可用，请稍后重试';
+            let errorType = 'error';
+            
+            if (error instanceof Error) {
+              switch (error.message) {
+                case 'API_QUOTA_EXCEEDED':
+                  errorMessage = '⚠️ API调用次数已达上限，请稍后再试或联系管理员';
+                  errorType = 'quota_exceeded';
+                  break;
+                case 'API_KEY_INVALID':
+                  errorMessage = '🔑 API密钥配置有误，请联系管理员';
+                  errorType = 'api_key_error';
+                  break;
+                case 'API_SERVICE_UNAVAILABLE':
+                  errorMessage = '🔧 AI服务暂时不可用，请稍后重试';
+                  errorType = 'service_unavailable';
+                  break;
+                case 'NETWORK_ERROR':
+                  errorMessage = '🌐 网络连接异常，请检查网络后重试';
+                  errorType = 'network_error';
+                  break;
+                case 'API_ERROR':
+                  errorMessage = '❌ AI服务出现错误，请稍后重试';
+                  errorType = 'api_error';
+                  break;
+                default:
+                  errorMessage = '❌ 未知错误，请稍后重试';
+                  errorType = 'unknown_error';
+              }
+            }
+            
             controller.enqueue(encoder.encode(`data: ${JSON.stringify({
-              type: 'error',
-              error: 'Failed to get response from AI'
+              type: errorType,
+              error: errorMessage,
+              messageId: assistantMessage.id
             })}\n\n`));
           }
         } finally {

@@ -160,7 +160,7 @@ export function HistoryManagementPanel({
           ].map(({ id, label, icon: Icon }) => (
             <button
               key={id}
-              onClick={() => setActiveTab(id as any)}
+              onClick={() => setActiveTab(id as 'sessions' | 'favorites' | 'settings')}
               className={`flex-1 flex items-center justify-center space-x-2 py-4 transition-all duration-300 ${
                 activeTab === id ? 'border-b-2' : ''
               }`}

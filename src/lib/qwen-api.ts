@@ -44,9 +44,46 @@ export async function callQwenAPI(messages: QwenMessage[]): Promise<string> {
     );
 
     return response.data.output.text;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Qwen API Error:', error);
-    throw new Error('Failed to get response from AI');
+    
+    // 处理不同类型的API错误
+    if (error.response) {
+      const status = error.response.status;
+      const errorData = error.response.data;
+      
+      // Token用完或配额不足
+      if (status === 429 || status === 402 || 
+          (errorData?.error && (
+            errorData.error.includes('quota') || 
+            errorData.error.includes('token') ||
+            errorData.error.includes('limit') ||
+            errorData.error.includes('insufficient')
+          ))) {
+        throw new Error('API_QUOTA_EXCEEDED');
+      }
+      
+      // API密钥无效
+      if (status === 401 || status === 403) {
+        throw new Error('API_KEY_INVALID');
+      }
+      
+      // 服务不可用
+      if (status >= 500) {
+        throw new Error('API_SERVICE_UNAVAILABLE');
+      }
+      
+      // 其他API错误
+      throw new Error('API_ERROR');
+    }
+    
+    // 网络错误
+    if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND' || error.code === 'ETIMEDOUT') {
+      throw new Error('NETWORK_ERROR');
+    }
+    
+    // 默认错误
+    throw new Error('UNKNOWN_ERROR');
   }
 }
 
@@ -111,6 +148,19 @@ export async function callQwenStreamAPI(
       throw error; // 重新抛出中断错误
     }
     console.error('Qwen Stream API Error:', error);
-    throw new Error('Failed to get stream response from AI');
+    
+    // 重新抛出API错误，让上层处理
+    if (error instanceof Error && (
+      error.message === 'API_QUOTA_EXCEEDED' ||
+      error.message === 'API_KEY_INVALID' ||
+      error.message === 'API_SERVICE_UNAVAILABLE' ||
+      error.message === 'NETWORK_ERROR' ||
+      error.message === 'API_ERROR' ||
+      error.message === 'UNKNOWN_ERROR'
+    )) {
+      throw error;
+    }
+    
+    throw new Error('UNKNOWN_ERROR');
   }
 }

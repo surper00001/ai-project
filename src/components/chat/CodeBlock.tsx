@@ -20,7 +20,7 @@ export function CodeBlock({
   code, 
   language = 'text', 
   filename, 
-  showLineNumbers = true 
+  showLineNumbers = true // 暂时未使用 
 }: CodeBlockProps) {
   const { themeConfig } = useTheme();
   const [copied, setCopied] = useState(false);

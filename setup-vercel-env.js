@@ -67,3 +67,6 @@ rl.question('你的 Vercel 应用名称 (例如: my-ai-app): ', (appName) => {
     });
   });
 });
+
+
+

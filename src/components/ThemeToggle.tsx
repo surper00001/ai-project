@@ -39,7 +39,7 @@ export function ThemeToggle() {
 
   // 选择主题
   const selectTheme = (themeName: string) => {
-    setTheme(themeName as any);
+    setTheme(themeName as 'light' | 'dark' | 'system');
     setIsOpen(false);
   };
 

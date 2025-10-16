@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { Upload, FileText, X, Loader2 } from 'lucide-react';
+import { Upload, FileText, Loader2 } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { gsap } from 'gsap';
 

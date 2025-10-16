@@ -41,7 +41,7 @@ export function PerformanceMonitor({ messageCount, onPerformanceIssue }: Perform
         const fps = Math.round((frameCount * 1000) / (currentTime - lastTime));
         
         // 获取内存使用情况（如果支持）
-        const memoryInfo = (performance as any).memory;
+        const memoryInfo = (performance as Performance & { memory?: { usedJSHeapSize: number } }).memory;
         const memoryUsage = memoryInfo ? Math.round(memoryInfo.usedJSHeapSize / 1024 / 1024) : 0;
         
         const newMetrics: PerformanceMetrics = {

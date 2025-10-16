@@ -16,6 +16,8 @@ const nextConfig: NextConfig = {
     QWEN_API_URL: process.env.QWEN_API_URL,
   },
   
+  // 实验性功能配置已移除，使用 serverExternalPackages
+  
   // 生产环境优化
   compress: true,
   poweredByHeader: false,

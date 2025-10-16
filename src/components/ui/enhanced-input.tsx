@@ -3,7 +3,7 @@
 import React, { forwardRef, useState } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
-import { Eye, EyeOff, Search, X } from 'lucide-react';
+import { Eye, EyeOff, X } from 'lucide-react';
 
 /**
  * 增强输入框组件接口

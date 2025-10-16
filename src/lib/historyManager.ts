@@ -292,3 +292,6 @@ export class HistoryManager {
 
 // 创建默认实例
 export const historyManager = new HistoryManager();
+
+
+
