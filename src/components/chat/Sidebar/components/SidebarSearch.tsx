@@ -44,3 +44,7 @@ export function SidebarSearch({ searchQuery, onSearchChange, searchRef }: Sideba
   );
 }
 
+
+
+
+

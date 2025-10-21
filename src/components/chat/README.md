@@ -166,3 +166,7 @@ import { useChatState } from '@/components/chat/ChatInterface/hooks/useChatState
 4. **国际化**：支持多语言切换
 5. **主题扩展**：支持更多主题和自定义主题
 
+
+
+
+

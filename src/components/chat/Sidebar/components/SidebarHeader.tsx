@@ -98,3 +98,7 @@ export function SidebarHeader({ onCreateSession, onToggle }: SidebarHeaderProps)
   );
 }
 
+
+
+
+
