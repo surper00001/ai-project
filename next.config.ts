@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
   
   // 图片优化配置
   images: {
-    domains: ['localhost'],
+    domains: ['localhost', '39.96.218.145'],
     unoptimized: process.env.NODE_ENV === 'production', // 生产环境禁用图片优化以提升性能
   },
   
@@ -22,8 +22,8 @@ const nextConfig: NextConfig = {
   compress: true,
   poweredByHeader: false,
   
-  // 输出配置
-  output: 'standalone', // 支持Docker部署
+  // 输出配置 - 移除standalone以解决静态资源404问题
+  // output: 'standalone', // 在nginx代理环境下可能导致静态资源404
   
   // 实验性功能已移除，使用 serverExternalPackages
   

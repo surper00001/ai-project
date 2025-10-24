@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { UploadedFile, ChatSession } from './useChatState';
+import { UploadedFile, ChatSession, Message } from './useChatState';
 
 /**
  * 文件上传管理Hook
@@ -218,7 +218,7 @@ ${file.content}
       }
 
       const decoder = new TextDecoder();
-      let assistantMessage: { id: string; content: string; role: 'ASSISTANT'; createdAt: string } | null = null;
+      let assistantMessage: Message | null = null;
       let currentContent = '';
 
       while (true) {
@@ -241,10 +241,10 @@ ${file.content}
                   createdAt: new Date().toISOString(),
                   chatSessionId: currentSession.id
                 };
-                setCurrentSession(prev => prev ? {
+                setCurrentSession(prev => prev && assistantMessage ? {
                   ...prev,
                   messages: [...prev.messages, assistantMessage]
-                } : null);
+                } : prev);
               } else if (data.type === 'chunk' && assistantMessage) {
                 currentContent += data.content;
                 setCurrentSession(prev => {
@@ -357,6 +357,11 @@ ${file.content}
     getFileLanguage
   };
 }
+
+
+
+
+
 
 
 

@@ -58,13 +58,13 @@ export const fileUtils = {
    */
   isValidFileType: (file: File): boolean => {
     // 检查MIME类型
-    if (SUPPORTED_FILE_TYPES.includes(file.type as any)) {
+    if (SUPPORTED_FILE_TYPES.includes(file.type as typeof SUPPORTED_FILE_TYPES[number])) {
       return true;
     }
     
     // 检查文件扩展名
     const extension = file.name.split('.').pop()?.toLowerCase();
-    return SUPPORTED_FILE_EXTENSIONS.includes(extension as any);
+    return SUPPORTED_FILE_EXTENSIONS.includes(extension as typeof SUPPORTED_FILE_EXTENSIONS[number]);
   },
 
   /**
@@ -217,7 +217,7 @@ export const performanceUtils = {
    * @param delay 延迟时间
    * @returns 节流后的函数
    */
-  throttle: <T extends (...args: any[]) => any>(
+  throttle: <T extends (...args: unknown[]) => unknown>(
     func: T,
     delay: number
   ): ((...args: Parameters<T>) => void) => {
@@ -246,7 +246,7 @@ export const performanceUtils = {
    * @param delay 延迟时间
    * @returns 防抖后的函数
    */
-  debounce: <T extends (...args: any[]) => any>(
+  debounce: <T extends (...args: unknown[]) => unknown>(
     func: T,
     delay: number
   ): ((...args: Parameters<T>) => void) => {
@@ -264,7 +264,7 @@ export const performanceUtils = {
    */
   getMemoryUsage: () => {
     if ('memory' in performance) {
-      const memory = (performance as any).memory;
+      const memory = (performance as { memory: { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number } }).memory;
       return {
         used: memory.usedJSHeapSize,
         total: memory.totalJSHeapSize,
@@ -346,6 +346,8 @@ export const styleUtils = {
     return `${name} ${duration} ${easing}`;
   }
 };
+
+
 
 
 

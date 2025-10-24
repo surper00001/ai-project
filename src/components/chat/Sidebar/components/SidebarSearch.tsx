@@ -10,7 +10,7 @@ interface SidebarSearchProps {
   /** 搜索查询变化回调 */
   onSearchChange: (query: string) => void;
   /** 搜索框引用 */
-  searchRef: RefObject<HTMLInputElement>;
+  searchRef: RefObject<HTMLInputElement | null>;
 }
 
 /**
@@ -43,6 +43,8 @@ export function SidebarSearch({ searchQuery, onSearchChange, searchRef }: Sideba
     </div>
   );
 }
+
+
 
 
 

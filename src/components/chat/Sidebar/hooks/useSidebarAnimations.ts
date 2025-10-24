@@ -8,8 +8,8 @@ import { gsap } from 'gsap';
  * 处理侧边栏的开关动画
  */
 export function useSidebarAnimations(
-  sidebarRef: RefObject<HTMLDivElement>,
-  overlayRef: RefObject<HTMLDivElement>,
+  sidebarRef: RefObject<HTMLDivElement | null>,
+  overlayRef: RefObject<HTMLDivElement | null>,
   isOpen: boolean
 ) {
   /**
@@ -51,6 +51,8 @@ export function useSidebarAnimations(
     }
   }, [isOpen, sidebarRef, overlayRef]);
 }
+
+
 
 
 

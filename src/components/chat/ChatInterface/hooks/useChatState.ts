@@ -10,6 +10,7 @@ export interface Message {
   content: string;
   role: 'USER' | 'ASSISTANT';
   createdAt: string;
+  chatSessionId?: string;
 }
 
 /**
@@ -131,6 +132,11 @@ export function useChatState() {
     pendingContentRef
   };
 }
+
+
+
+
+
 
 
 

@@ -132,3 +132,5 @@ export function SidebarFooter({ statistics, onShowHistoryManagement }: SidebarFo
 
 
 
+
+

@@ -43,7 +43,7 @@ export function HistoryManagementPanel({
   statistics
 }: HistoryManagementPanelProps) {
   const { themeConfig } = useTheme();
-  const [activeTab, setActiveTab] = useState<'cleanup' | 'export' | 'statistics'>('cleanup');
+  const [activeTab, setActiveTab] = useState<'sessions' | 'favorites' | 'settings'>('sessions');
   const [isProcessing, setIsProcessing] = useState(false);
   const [fileInput, setFileInput] = useState<HTMLInputElement | null>(null);
 
@@ -178,7 +178,7 @@ export function HistoryManagementPanel({
 
         {/* 内容区域 */}
         <div className="p-6">
-          {activeTab === 'cleanup' && (
+          {activeTab === 'sessions' && (
             <div className="space-y-6">
               <div className="text-center">
                 <AlertTriangle 
@@ -273,7 +273,7 @@ export function HistoryManagementPanel({
             </div>
           )}
 
-          {activeTab === 'export' && (
+          {activeTab === 'favorites' && (
             <div className="space-y-6">
               <div className="text-center">
                 <Download 
@@ -357,7 +357,7 @@ export function HistoryManagementPanel({
             </div>
           )}
 
-          {activeTab === 'statistics' && (
+          {activeTab === 'settings' && (
             <div className="space-y-6">
               <div className="text-center">
                 <BarChart3 

@@ -78,13 +78,14 @@ export async function callQwenAPI(messages: QwenMessage[]): Promise<string> {
 
     // 返回AI生成的文本内容
     return response.data.output.text;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Qwen API Error:', error);
     
     // 处理不同类型的API错误
-    if (error.response) {
-      const status = error.response.status; // HTTP状态码
-      const errorData = error.response.data; // 错误响应数据
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response: { status: number; data: { error?: string } } };
+      const status = axiosError.response.status; // HTTP状态码
+      const errorData = axiosError.response.data; // 错误响应数据
       
       // Token用完或配额不足
       // 检查状态码和错误信息中的关键词
@@ -113,8 +114,11 @@ export async function callQwenAPI(messages: QwenMessage[]): Promise<string> {
     }
     
     // 网络连接错误
-    if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND' || error.code === 'ETIMEDOUT') {
-      throw new Error('NETWORK_ERROR');
+    if (error && typeof error === 'object' && 'code' in error) {
+      const networkError = error as { code: string };
+      if (networkError.code === 'ECONNREFUSED' || networkError.code === 'ENOTFOUND' || networkError.code === 'ETIMEDOUT') {
+        throw new Error('NETWORK_ERROR');
+      }
     }
     
     // 默认未知错误
