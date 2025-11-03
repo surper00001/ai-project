@@ -13,8 +13,8 @@ services:
     restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgresql://postgres:Tt149212@localhost:5432/ai_project
-      - DIRECT_URL=postgresql://postgres:Tt149212@localhost:5432/ai_project
+      - DATABASE_URL=postgresql://postgres:Tt149212@39.96.218.145:5432/postgres
+      - DIRECT_URL=postgresql://postgres:Tt149212@39.96.218.145:5432/postgres
       - NEXTAUTH_SECRET=ihHd+ZkvByDA0TTtowiJU/Gg3bF1WESoYrVA+NhMmY4=
       - NEXTAUTH_URL=http://39.96.218.145
       - QWEN_API_KEY=sk-30a8e6a72d6a4bda97f0ae9ca7d02fa3
